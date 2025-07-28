@@ -29,5 +29,5 @@ A basic component using Bond looks like this:
 Let's break this down:
 
 - The `<script setup>` tag is where you define your component logic. It only runs after Alpine.js has been initialized, so you don't need to wrap it in an alpine:init event listener. It also ensures that the script is only executed once, even if the component is used multiple times on a page.
-- The `mount` function is used to define the component's logic. It takes a function that returns an object with the component's state and methods.
-- The `props` parameter is used to accept and define the data which can be passed to the component from the outside. The definition is done by adding a type annotation to the props parameter.
+    - The `mount` function is used to define the component's logic. It takes a function that must return an object with the component's state and methods.
+    - The `props` parameter is used to accept and define the data which can be passed to the component from the outside. The definition is done by adding a type annotation to the parameter.
