@@ -113,6 +113,7 @@ In addition to passing variables, you can also pass static values, like numbers,
     format={'9.99'}
     onincrement={() => console.log('incremented')}
 />
+```
 
 ### TypeScript
 
