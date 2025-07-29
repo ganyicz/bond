@@ -117,9 +117,7 @@ In addition to passing variables, you can also pass static values, like numbers,
 
 ### TypeScript
 
-Bond takes advantage of TypeScript to provide a terse syntax for defining props and also to power the IDE features like autocomplete and error checking. By default Bond doesn't use the `strict` mode, allowing you to only use types where you need them, avoiding the notorious boilerplate usually associated with TypeScript.
-
-You can opt out of using TypeScript entirely by using the `props` method inside the `<script setup>` tag, however you will loose some of the IDE features.
+Bond takes advantage of TypeScript to provide a terse syntax for defining props and also to power the IDE features like autocomplete and error checking. By default Bond doesn't use the `strict` mode, allowing you to only use types where you need them, avoiding the notorious boilerplate usually associated with TypeScript. You can opt out of using TypeScript entirely by using the `props` method inside the `<script setup>` tag, however you will loose some of the IDE features.
 
 ```html
 <script setup>
