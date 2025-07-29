@@ -49,4 +49,15 @@ The `<script setup>` tag allows you to write your Blade components with a clear 
 
 ### Props
 
-Props are used to pass data into the component from the outside. 
+Props are used to pass data into the component from the outside, they are defined in the `mount` function's parameter as a typed object. This allows you to define the expected structure of the props and provides type checking and autocompletion in your IDE.
+
+```html
+<script setup>
+    mount((props: {
+        step: number,
+        min?: number,
+        max?: number
+    }) => ({
+        ...
+    }))
+</script>
