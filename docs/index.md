@@ -83,7 +83,7 @@ This is the equivalent of writing:
 
 Props are used to pass reactive data into the component from the outside. They are defined in the `mount` function's parameter using a type annotation. This allows you to specify the expected structure of the props and provides type checking and autocompletion in your IDE.
 
-You can pass any Alpine.js variable from the outside scope, including Livewire variables. This is useful in few  This is particulary useful when using the `$wire` object, allowing you to write components with optimistic UI updates without triggering a server request, defering the request until the user submits the form for example.
+You can pass any Alpine.js variable from the outside scope, including Livewire properties. This is particulary useful when using the `$wire` object, allowing you to write components with optimistic UI updates without triggering a server request, defering the request until the user submits the form for example.
 
 ```html
 <script setup>
@@ -97,8 +97,14 @@ You can pass any Alpine.js variable from the outside scope, including Livewire v
 </script>
 ```
 
-Once defined, you can pass data to it as you would with any Blade component:
+Once defined, you can pass props to it using the JSX-like syntax:
 
 ```html
 <x-number-input step={$wire.precision} />
+```
+
+Or using the standard Alpine.js syntax, by prefixing the prop name with `x-`:
+
+```html
+<x-number-input x-step="$wire.precision" />
 ```
