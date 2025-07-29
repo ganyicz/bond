@@ -43,9 +43,40 @@ Let's break this down:
 
 The `<script setup>` tag allows you to write your Blade components with a clear separation of logic and template. Similar to Vue, it is a syntactic sugar that provides a number of advantages:
 
+- Automatically imports Bond functions like `mount`
 - Defers the execution of the script until Alpine.js is initialized
 - Ensures the script is only executed once, even if the component is used multiple times on a page
-- Enriches `$attributes` for easy binding of the component's logic to an HTML element
+- Binds the state and methods to where the `{{ $attributes }}` are placed, so you don't need to use `x-data` to intiliaze the component
+
+### JSX-like attribute syntax
+
+With Bond, you can use a JSX-like syntax for attributes. This provides a visual separation for attributes containing JavaScript expressions and allows you to use Alpine.js directives with a cleaner syntax.
+
+```html
+<input
+    model={value}
+    onchange={value => console.log(value)}
+    disabled={value < 0}
+    class=({
+        'bg-gray-200': value < 0,
+        'bg-blue-500': value >= 0
+    })
+>
+```
+
+This is the equivalent of writing:
+
+```html
+<input
+    x-model="value"
+    x-on:change="value => console.log(value)"
+    x-bind:disabled="value < 0"
+    x-bind:class="{
+        'bg-gray-200': value < 0,
+        'bg-blue-500': value >= 0
+    }"
+>
+```
 
 ### Props
 
@@ -61,3 +92,10 @@ Props are used to pass data into the component from the outside, they are define
         ...
     }))
 </script>
+```
+
+Once defined, you can pass data to it as you would with any Blade component:
+
+```html
+<x-number-input step={$wire.precision} />
+```
