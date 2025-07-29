@@ -56,7 +56,7 @@ With Bond, you can use a JSX-like syntax for attributes. This provides a visual 
 ```html
 <input
     model={value}
-    onchange={value => console.log(value)}
+    onchange={() => console.log($el.value)}
     disabled={value < 0}
     class=({
         'bg-gray-200': value < 0,
@@ -70,7 +70,7 @@ This is the equivalent of writing:
 ```html
 <input
     x-model="value"
-    x-on:change="value => console.log(value)"
+    x-on:change="() => console.log($el.value)"
     x-bind:disabled="value < 0"
     x-bind:class="{
         'bg-gray-200': value < 0,
