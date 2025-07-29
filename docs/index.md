@@ -19,7 +19,7 @@ Below is a simple component that uses Bond:
     }))
 </script>
 
-<div {{ $attributes }} modelable={value}>
+<div {{ $attributes }}>
     <x-button onclick={increment} icon="plus" />
     <input model={value}>
     <x-button onclick={decrement} icon="minus" />
