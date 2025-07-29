@@ -47,7 +47,7 @@ The `<script setup>` tag allows you to write your Blade components with a clear 
 
 ### JSX-like attribute syntax
 
-With Bond, you can use a JSX-like syntax for attributes. This provides a visual separation for attributes containing JavaScript expressions and allows you to use Alpine.js directives with a cleaner syntax.
+With Bond, you can use a JSX-like syntax for attributes. This provides a visual separation for attributes containing JavaScript expressions and allows you to use Alpine.js directives with a cleaner syntax. This is optional and you can still use the standard Alpine.js syntax if you prefer.
 
 ```html
 <input
@@ -105,11 +105,28 @@ Or using the standard Alpine.js syntax, by prefixing the prop name with `x-`:
 <x-number-input x-step="$wire.precision" />
 ```
 
-In addition to passing variables, you can also pass static values, like numbers, strings 
+In addition to passing variables, you can also pass static values, like numbers, strings or functions: 
 
 ```html
 <x-number-input
     step={0.1}
     format={'9.99'}
-    onIncrement={() => console.log('incremented')}
+    onincrement={() => console.log('incremented')}
 />
+
+### TypeScript
+
+Bond takes advantage of TypeScript to provide a terse syntax for defining props and also to power the IDE features like autocomplete and error checking. By default Bond doesn't use the `strict` mode, allowing you to only use types where you need them, avoiding the notorious boilerplate usually associated with TypeScript.
+
+You can opt out of using TypeScript entirely by using the `props` method inside the `<script setup>` tag, however you will loose some of the IDE features.
+
+```html
+<script setup>
+    props(['step', 'min', 'max'])
+
+    mount(props => ({
+        value: 0,
+        increment() { this.value += props.step },
+        decrement() { this.value -= props.step },
+    }))
+</script>
