@@ -104,3 +104,12 @@ Or using the standard Alpine.js syntax, by prefixing the prop name with `x-`:
 ```html
 <x-number-input x-step="$wire.precision" />
 ```
+
+In addition to passing variables, you can also pass static values, like numbers, strings 
+
+```html
+<x-number-input
+    step={0.1}
+    format={'9.99'}
+    onIncrement={() => console.log('incremented')}
+/>
