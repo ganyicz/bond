@@ -8,6 +8,7 @@ This package lets you write modern React/Vue-like components inside Laravel Blad
 
 Below is a simple component that uses Bond:
 
+```html
 <script setup>
     mount((props: {
         step: number
@@ -44,8 +45,9 @@ The `<script setup>` tag is a special syntax that allows you to write your compo
 
 When you use this tag, it compiles down to the following:
 
-```blade
+```html
 <!-- resources/views/components/number-input.blade.php -->
+ 
 @pushOnce('scripts')
 <script type="module">
 import { mount } from @module('bond');
