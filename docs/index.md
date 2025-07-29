@@ -2,11 +2,7 @@
 
 This package lets you write modern React/Vue-like components inside Laravel Blade. It uses Alpine.js under the hood and adds a few new features that mimick the experience of authoring components in modern JavaScript frameworks. It also comes with a VS Code extension that provides syntax highlighting, autocomplete and error checking. 
 
-## Writing components
-
-### Basic Example
-
-Below is a simple component that uses Bond:
+## Basic example
 
 ```html
 <script setup>
