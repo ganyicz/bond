@@ -46,6 +46,7 @@ The `<script setup>` tag allows you to write your Blade components with a clear 
 - Automatically imports Bond functions like `mount`
 - Defers the execution of the script until Alpine.js is initialized
 - Ensures the script is only executed once, even if the component is used multiple times on a page
+- Isolates the scope of the component, preventing leakage of variables defined outside the component
 - Binds the state and methods to where the `{{ $attributes }}` are placed, so you don't need to use `x-data` to intiliaze the component
 
 ### JSX-like attribute syntax
@@ -80,7 +81,9 @@ This is the equivalent of writing:
 
 ### Props
 
-Props are used to pass data into the component from the outside, they are defined in the `mount` function's parameter as a typed object. This allows you to define the expected structure of the props and provides type checking and autocompletion in your IDE.
+Props are used to pass reactive data into the component from the outside. They are defined in the `mount` function's parameter using a type annotation. This allows you to specify the expected structure of the props and provides type checking and autocompletion in your IDE.
+
+You can pass any Alpine.js variable from the outside scope, including Livewire variables. This is useful in few  This is particulary useful when using the `$wire` object, allowing you to write components with optimistic UI updates without triggering a server request, defering the request until the user submits the form for example.
 
 ```html
 <script setup>
