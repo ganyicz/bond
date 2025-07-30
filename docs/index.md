@@ -29,10 +29,18 @@ Bond is ideal anytime you need a frontend-heavy component that should be reusabl
 You can use Bond on its own, but it works especially well in combination with Livewire. For example, using the component above, you could pass a `$wire` object property into the Blade component like this:
 
 ```html
-<x-number-input model={$wire.amount} />
+<select model={$wire.precision}>
+    <option value="0.1">0.1</option>
+    <option value="0.01">0.01</option>
+    <option value="0.001">0.001</option>
+</select>
+
+<x-number-input model={$wire.amount} step={$wire.precision} />
+
+<button onclick={$wire.commit()}>Save</button>
 ```
 
-Now, when the user clicks the plus or minus buttons, the UI updates instantly without making a server request, deferring the server update until `$wire.commit()` or any other Livewire method is called.
+In this example, when the user selects a precision from the dropdown, the `step` property inside the number input component is automatically updated and the UI responds instantly, without making a server request. The server update is deferred until you explicitly call `$wire.commit()` or any other Livewire method.
 
 ## Features
 
