@@ -26,7 +26,7 @@ This package lets you write modern React/Vue-like components inside Laravel Blad
 
 Bond is ideal anytime you need a frontend-heavy component that needs to be reusable or abstracted into its own file.
 
-You can use Bond on its own, but it works especially well in combination with Livewire. It is particularly useful for optimistic UI updates, where you want the interface to respond instantly to user actions without waiting for a server round-trip.
+You can use Bond on its own, but it works especially well in combination with Livewire, making it easy to build optimistic UIs that update instantly, without making a server round-trip.
 
 ```html
 <x-number-input model={$wire.amount} step={$wire.precision} />
