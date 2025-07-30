@@ -1,37 +1,38 @@
 # Bond for Blade and Alpine.js
 
-This package lets you write modern React/Vue-like components inside Laravel Blade. It uses Alpine.js under the hood and adds a few new features that mimick the experience of authoring components in modern JavaScript frameworks. It also comes with a VS Code extension that provides syntax highlighting, autocomplete and error checking. 
+This package lets you write modern React/Vue-like components inside Laravel Blade. It uses Alpine.js under the hood and adds a few new features that mimick the experience of authoring components in modern JavaScript frameworks. It also comes with a VS Code extension that provides syntax highlighting, autocomplete and error checking. [See it in action](https://x.com/ganyicz/status/1949237986521981302).
 
 ## Basic example
 
 ```html
 <script setup>
     mount((props: {
-        step: number
+        step: ?number
     }) => ({
         value: 0,
-        increment() { this.value += props.step },
-        decrement() { this.value -= props.step },
+        increment() { this.value += props.step || 1 },
+        decrement() { this.value -= props.step || 1 },
     }))
 </script>
 
-<div {{ $attributes }}>
+<div {{ $attributes }} modelable={value}>
     <x-button onclick={increment} icon="plus" />
     <input model={value}>
     <x-button onclick={decrement} icon="minus" />
 </div>
 ```
 
-<!--
-Let's break this down:
+## When should you use this?
 
-- The `<script setup>` tag is where you define your component logic. It only runs after Alpine.js has been initialized, so you don't need to wrap it in an alpine:init event listener. It also ensures that the script is only executed once, even if the component is used multiple times on a page.
-    - The `mount` function takes another function as a parameter and it must return an object with the component's state and methods.
-    - The `props` parameter is used to accept and define data that can be passed from the outside. The definition is done by adding a type annotation to the parameter.
-- The `{{ $attributes }}` automatically bind the component's logic to that element.
-- The `modelable` directive is used for two-way data binding, this is a [Alpine.js feature](https://alpinejs.dev/directives/modelable).
-- You can omit the `x-` prefix on Alpine.js directives for a cleaner syntax (however you can still use it if you prefer). Event handlers like `x-on:click` or `x-on:change` can be written as `onclick` or `onchange` respectively.
--->
+Bond is ideal anytime you need a frontend-heavy component that should be reusable or abstracted into its own Blade component. It excels at handling optimistic UI updates, where you want the interface to respond instantly to user actions without waiting for a server round-trip.
+
+You can use Bond on its own, but it works especially well in combination with Livewire. For example, using the component above, you could pass a `$wire` object into the Blade component like this:
+
+```html
+<x-number-input model={$wire.amount} />
+```
+
+Now, when the user clicks the plus or minus buttons, the UI updates instantly without making a server request. This allows you to defer updates and only trigger them when you want, for example by calling `$wire.commit()` or any other Livewire method.
 
 ## Features
 
@@ -129,3 +130,4 @@ Bond takes advantage of TypeScript to provide a terse syntax for defining props 
         decrement() { this.value -= props.step },
     }))
 </script>
+```
