@@ -26,21 +26,21 @@ This package lets you write modern React/Vue-like components inside Laravel Blad
 
 Bond is ideal anytime you need a frontend-heavy component that should be reusable or abstracted into its own file. It excels at handling optimistic UI updates, where you want the interface to respond instantly to user actions without waiting for a server round-trip.
 
-You can use Bond on its own, but it works especially well in combination with Livewire. For example, using the component above, you could pass a `$wire` object property into the Blade component like this:
+You can use Bond on its own, but it works especially well in combination with Livewire. For example, using the component above, you could pass a `$wire` object properties into the Blade component like this:
 
 ```html
+<x-number-input model={$wire.amount} step={$wire.precision} />
+
 <select model={$wire.precision}>
     <option value="0.1">0.1</option>
     <option value="0.01">0.01</option>
     <option value="0.001">0.001</option>
 </select>
 
-<x-number-input model={$wire.amount} step={$wire.precision} />
-
 <button onclick={$wire.commit()}>Save</button>
 ```
 
-In this example, when the user selects a precision from the dropdown, the `step` property inside the number input component is automatically updated and the UI responds instantly, without making a server request. The server update is deferred until you explicitly call `$wire.commit()` or any other Livewire method.
+When the user selects a precision from the dropdown, the `step` property inside the number input is automatically updated and the UI responds instantly, without making a server request. The server update is deferred until you explicitly call `$wire.commit()` or any other Livewire method.
 
 ## Features
 
