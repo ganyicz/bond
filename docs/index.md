@@ -38,7 +38,7 @@ Whenever you need a frontend-heavy component that should be reusable or abstract
 <button onclick={$wire.commit()}>Save</button>
 ```
 
-In this example, when the user selects a precision from the dropdown, the `step` property inside the number input is automatically updated, without making a server request, which is deferred until you explicitly call `$wire.commit()` or a different method.
+In this example, when the user selects a precision from the dropdown, the `step` property inside the number input is automatically updated and the UI responds instantly, with no server request made until you explicitly call `$wire.commit()` or another Livewire method.
 
 ## Features
 
