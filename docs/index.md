@@ -10,7 +10,7 @@ To get started, install Bond into your project using Composer:
 composer require ganyicz/bond
 ```
 
-Next, install Bond's Vite plugin, by including the following lines in your `vite.config.js`. This step is necessary for compiling TypeScript. You can skip this step if you plan to use Bond without TypeScript, but it is highly recommended to use it for the best developer experience.
+Next, install Bond's Vite plugin, by including the following lines in your `vite.config.js`. You can skip this step if you plan to use Bond without TypeScript, but it is highly recommended to use it for the best developer experience.
 
 ```diff
 import { defineConfig } from 'vite';
@@ -40,8 +40,8 @@ export default defineConfig({
         step: number
     }) => ({
         value: 0,
-        increment() { this.value += props.step || 1 },
-        decrement() { this.value -= props.step || 1 },
+        increment() { this.value += props.step },
+        decrement() { this.value -= props.step },
     }))
 </script>
 
