@@ -16,7 +16,7 @@ After installing Bond, you may execute the `bond:install` Artisan command, which
 php artisan bond:install
 ```
 
-You can also install the VS Code extension for Bond, which provides syntax highlighting, autocompletion and error checking. [See it in the marketplace](https://marketplace.visualstudio.com).
+You can also install the [VS Code extension for Bond](https://marketplace.visualstudio.com), which provides syntax highlighting, autocompletion and error checking.
 
 ## Basic example
 
