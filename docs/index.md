@@ -2,6 +2,22 @@
 
 This package lets you write modern React/Vue-like components inside Laravel Blade. It uses Alpine.js under the hood and adds a few new features that mimick the experience of authoring components in modern JavaScript frameworks. It also comes with a VS Code extension that provides syntax highlighting, autocomplete and error checking. [See it in action](https://x.com/ganyicz/status/1949237986521981302).
 
+## Installation
+
+To get started, install Bond into your project using Composer:
+
+```bash
+composer require ganyicz/bond
+```
+
+After installing Bond, you may execute the `bond:install` Artisan command, which will install Bond's Vite plugin which is necessary for compiling TypeScript. You can skip this step if you plan to use Bond without TypeScript, but it is highly recommended to use it for the best developer experience.
+
+```bash
+php artisan bond:install
+```
+
+You can also install the VS Code extension for Bond, which provides syntax highlighting, autocompletion and error checking. [See it in the marketplace](https://marketplace.visualstudio.com).
+
 ## Basic example
 
 ```html
