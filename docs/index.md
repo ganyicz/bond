@@ -124,7 +124,25 @@ In addition to passing variables, you can also pass static values, like numbers,
 
 ### TypeScript
 
-Bond takes advantage of TypeScript to provide a terse syntax for defining props and also to power the IDE features like autocomplete and error checking. By default Bond doesn't use the `strict` mode, allowing you to only use types where you need them, avoiding the notorious boilerplate usually associated with TypeScript. You can opt out of using TypeScript entirely by using the `props` method inside the `<script setup>` tag, however you will loose some of the IDE features.
+Bond takes advantage of TypeScript to provide a terse syntax for defining props and also to power the IDE features like autocomplete and error checking. By default Bond doesn't use the `strict` mode, allowing you to only use types where you need them, avoiding the notorious boilerplate usually associated with TypeScript. 
+
+#### Adding types to properties
+
+When a property is not initialized immediately, you can use TypeScript's `as` keyword to add types to your component's state.
+
+```html
+<script setup>
+    mount(() => ({
+        value: null as number | null,
+    }))
+</script>
+```
+
+In this example, the `value` property is explicitly typed as `number | null`, making it clear that it can hold either a number or `null`. This helps prevent type errors and improves autocompletion in your editor.
+
+#### Opting out of TypeScript
+
+You can opt out of using TypeScript entirely by using the `props` method inside the `<script setup>` tag, however you will loose some of the IDE features.
 
 ```html
 <script setup>
