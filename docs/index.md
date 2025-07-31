@@ -10,19 +10,31 @@ To get started, install Bond into your project using Composer:
 composer require ganyicz/bond
 ```
 
-After installing Bond, you may execute the `bond:install` Artisan command, which will install Bond's Vite plugin which is necessary for compiling TypeScript. You can skip this step if you plan to use Bond without TypeScript, but it is highly recommended to use it for the best developer experience.
+Next, install Bond's Vite plugin, by including the following lines in your `vite.config.js`. This step is necessary for compiling TypeScript. You can skip this step if you plan to use Bond without TypeScript, but it is highly recommended to use it for the best developer experience.
 
-```bash
-php artisan bond:install
+```diff
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
++ import bond from './vendor/ganyicz/bond/vite';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: ['resources/css/app.css', 'resources/js/app.js'],
+            refresh: true,
+        }),
+        tailwindcss(),
++       bond(),
+    ],
+});
 ```
-
-You can also install the [VS Code extension for Bond](https://marketplace.visualstudio.com), which provides syntax highlighting, autocompletion and error checking.
 
 ## Basic example
 
 ```html
 <!-- resources/views/components/number-input.blade.php -->
- 
+
 <script setup>
     mount((props: {
         step: number
