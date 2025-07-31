@@ -13,21 +13,21 @@ composer require ganyicz/bond
 Next, install Bond's Vite plugin, by including the following lines in your `vite.config.js`. This step is necessary for compiling TypeScript. You can skip this step if you plan to use Bond without TypeScript, but it is highly recommended to use it for the best developer experience.
 
 ```diff
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
-+ import bond from './vendor/ganyicz/bond/vite';
+    import { defineConfig } from 'vite';
+    import laravel from 'laravel-vite-plugin';
+    import tailwindcss from '@tailwindcss/vite';
++   import bond from './vendor/ganyicz/bond/vite';
 
-export default defineConfig({
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: true,
-        }),
-        tailwindcss(),
-+       bond(),
-    ],
-});
+    export default defineConfig({
+        plugins: [
+            laravel({
+                input: ['resources/css/app.css', 'resources/js/app.js'],
+                refresh: true,
+            }),
+            tailwindcss(),
++           bond(),
+        ],
+    });
 ```
 
 ## Basic example
