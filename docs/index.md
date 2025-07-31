@@ -22,6 +22,7 @@ You can also install the [VS Code extension for Bond](https://marketplace.visual
 
 ```html
 <!-- resources/views/components/number-input.blade.php -->
+ 
 <script setup>
     mount((props: {
         step: number
