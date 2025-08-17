@@ -1,9 +1,9 @@
 ![Banner](https://raw.githubusercontent.com/ganyicz/bond/main/art/banner.png)
 
 > ⚠️ **Alpha release:**  
-> This package is currently under active development and not yet intended for production use. Feedback and contributions are welcome!
+> This package is currently under active development and not yet intended for production use, it might not even work on your setup and is best to try on a fresh Laravel project. Feedback and contributions are welcome!
 
-Bond brings modern component authoring to Laravel Blade using Alpine.js. It introduces a few features inspired by React and Vue, making it easier to write structured, maintainable components. Bond also ships with a VS Code extension that adds syntax highlighting, autocomplete, and error checking.
+Bond brings modern component authoring to Laravel Blade and Alpine.js. It introduces a few features inspired by React and Vue, making it easier to write structured, maintainable components. Bond also ships with a VS Code extension that adds syntax highlighting, autocomplete, and error checking.
 
 ## Installation
 
@@ -61,7 +61,7 @@ And register them in your layout:
 </head>
 ```
 
-These must be placed in the <head> tag, with the plugin script registered first.
+These must be placed in the `<head>` tag, with the plugin script registered first.
 
 ## VS Code Extension
 
@@ -71,7 +71,7 @@ For the best development experience, install the [Bond VS Code extension](https:
 
 ### <script setup>
 
-The `<script setup>` tag separates your JavaScript logic from your Blade template. Bond extracts and bundles this code into a single file using Vite. The component will be mounted on the element where you place `{{ $attributes }}`.
+Bond\`s Vite plugin scans all blade files within your `resources/views` directory, extracts code from `<script setup>` tags and bundles them into a single file using Vite. The script tags will never actually get rendered on the page.
 
 ```html
 <script setup>
@@ -81,14 +81,18 @@ The `<script setup>` tag separates your JavaScript logic from your Blade templat
         ...
     }))
 </script>
+```
 
-<div {{ $attributes }}>
+The component gets automatically mounted to the elment where you place your `{{ $attributes }}`. In the background, Bond just adds directives like `x-data` and `x-component` to your attributes to identify and initialize the component.
+
+```html
+<div {{ $attributes }}> <!-- This will be the root -->
     ...
 </div>
 ```
 
 > [!IMPORTANT]
-> Components using <script setup> are isolated from the outside scope. To pass data in, use props or slots.
+> Components using `<script setup>` are isolated from the outside scope by design. To pass data in, use props or slots.
 
 ### Props
 
@@ -98,21 +102,21 @@ Props let you pass reactive data from outside into your component. Define them i
 <script setup>
     mount((props: {
         step: number,
-        min?: number,
-        max?: number
     }) => ({
         ...
     }))
 </script>
 ```
 
-Once defined, pass props using the `x-` prefix:
+Once defined, pass props in using the `x-` prefix:
 
 ```html
-<x-number-input x-step="outer" />
+<x-number-input x-step="outer" x-max="$wire.limit" />
 ```
 
-Props can be static values:
+All props are two-way bound by default. The `outer` value will reactively update when the `step` variable changes inside the component and vice versa. (This behavior might change in future releases.)
+
+You can also pass static values like numbers, strings or functions.
 
 ```html
 <x-number-input
@@ -122,15 +126,9 @@ Props can be static values:
 />
 ```
 
-And also Livewire properties:
-
-```html
-<x-number-input x-step="$wire.precision">
-```
-
 ### Slots
 
-Bond components are isolated, which means Blade slots do not have access to the parent scope by default:
+Bond components are isolated by default, which also applies to slots. The content will not have access to the parent scope by default:
 
 ```html
 <div x-data="{ message: 'You have exceeded your quota' }">
@@ -140,7 +138,7 @@ Bond components are isolated, which means Blade slots do not have access to the 
 </div>
 ```
 
-To make slot content behave as expected, wrap it with an element that has the x-slot directive. This resets the scope to the parent:
+To make slot behave as expected, wrap `{{ $slot }}` inside your component with an element that has an `x-slot` directive. This will reset the scope to the parent:
 
 ```html
 <div {{ $attributes }}>
@@ -149,7 +147,7 @@ To make slot content behave as expected, wrap it with an element that has the x-
 ```
 
 > [!IMPORTANT]
-> Attributes applied to an element with x-slot also use the outside scope, not just its children.
+> Attributes added to an element with x-slot will also use the outside scope, not just its children.
  
 ### Else statement
 
@@ -178,7 +176,7 @@ A simpler custom syntax for control statements is planned:
 
 ### Imports
 
-Since Bond compiles <script setup> tags with Vite, you can use any import supported in a JavaScript file:
+Since Bond compiles `<script setup>` tags with Vite, you can use any import supported in a JavaScript/TypeScript file:
 
 ```html
 <script setup>
@@ -210,18 +208,20 @@ With Bond, you can import SVGs and render them dynamically with `x-html`:
 </div>
 ```
 
+This will likely be revisited in the next release.
+
 ### TypeScript
 
-Bond uses TypeScript to provide a terse syntax for props and also to power the IDE features.
+Bond uses TypeScript to provide a terse syntax for props and also to power the IDE features. However, it disables the `strict` mode by default. This menas you are not forced to use types. You can write regular JavaScript without getting type errors but still get autocomplete and type hints in your IDE.
 
-By default, strict mode is disabled. This avoids unnecessary boilerplate and allows you to use types only where needed. Enabling strict mode is planned in future releases along with the option to opt out of TypeScript entirely.
+Options for both enabling `strict` mode and fully opting out of TypeScript will be available in the future.
 
 > [!IMPORTANT]
-> TypeScript syntax is only supported inside <script setup>. Alpine expressions are not bundled, so using TypeScript in them will cause runtime errors.
+> TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled, so using TypeScript in them will cause runtime errors.
 
 #### Adding types to properties
 
-If a property is not initialized immediately, use the `as` keyword:
+If a property is not initialized immediately, use the `as` keyword to define its type:
 
 ```html
 <script setup>
@@ -230,8 +230,6 @@ If a property is not initialized immediately, use the `as` keyword:
     }))
 </script>
 ```
-
-Here, `value` is explicitly typed as `number`, providing type safety and autocompletion in the IDE.
 
 ### Roadmap
 
@@ -274,7 +272,7 @@ The example above would be compiled to:
 
 Alpine requires wrapping conditional or loop logic in `<template>` tags, which can be verbose. Bond will introduce a cleaner syntax that will also enable real `else` statements. 
 
-The syntax below was designed to be visually distinct from Blade directives and its HTML-like structure will be easy to compile to Alpine.js code.
+The syntax below was designed to be visually distinct from Blade directives and its HTML-like structure will be easy to compile into Alpine.js code.
 
 ```html
 <!-- This is NOT yet supported -->
@@ -314,7 +312,7 @@ Bond will add support for inline template interpolation. This lets you write exp
 <div x-template>Hello, {name}</div>
 ```
 
-At runtime, `{name}` will be replaced with the actual value.
+`{name}` will be replaced with the actual value at runtime.
 
 #### Cross-file Intellisense (VS Code)
 
@@ -324,7 +322,7 @@ The Bond VS Code extension will provide autocomplete and type checking for props
 
 The Bond VS Code extension will include diagnostics for common errors in Alpine.js attributes, such as missing key in a for loop, one root element per template tag and more.
 
-#### Blade improvements
+#### Blade enhancements 
 
 While Bond primarily augments Alpine.js, several Blade-specific enhancements would be beneficial to improve modularity and organization.
 
