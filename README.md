@@ -67,6 +67,8 @@ These must be placed in the `<head>` tag, with the plugin script registered firs
 
 For the best development experience, install the [Bond VS Code extension](https://marketplace.visualstudio.com/items?itemName=ganyicz.bond-vscode-extension). It provides syntax highlighting, autocomplete, and error checking for both Bond components and Alpine.js attributes. The extension will be open-sourced in a future release.
 
+Make sure to also install the official [Laravel extension](https://marketplace.visualstudio.com/items?itemName=laravel.vscode-laravel). Bond will only load in files with language mode set to `Blade`.
+
 ## Features
 
 ### <script setup>
