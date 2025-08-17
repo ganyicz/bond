@@ -73,6 +73,8 @@ Bond will only load in files with language mode set to `Blade`.
 
 ## Quick guide
 
+Make sure to read documentations for [Alpine.js](https://alpinejs.dev/start-here) and [Laravel Blade](https://laravel.com/docs/12.x/blade) first. Bond supports all the same features.
+
 First, make sure your Vite development server is running:
 
 ```bash
@@ -125,7 +127,7 @@ Props let you pass reactive data from outside into your component. Define them i
     mount((props: {
         message: text,
     }) => ({
-        ...
+        //
     }))
 </script>
 ```
@@ -155,6 +157,31 @@ You can also pass static values like numbers, strings or functions.
     x-format="'9.99'"
     x-onincrement="() => console.log('incremented')"
 />
+```
+
+### Data
+
+To define data and functions on your component, add them on the object returned from the `mount` function callback. To reference them within the object, use the `this` keyword. You can access them in the template directly without any prefix.
+
+```html
+<script setup>
+    mount((props: {
+        message: text,
+        onclosed: () => void
+    }) => ({
+        close() {
+            this.onclosed()
+        }
+        get formattedMessage() {
+            this.message.toUpperCase()
+        }
+    }))
+</script>
+
+<div {{ $attributes }}>
+    <span x-text="formattedMessage"></span>
+    <button x-on:click="close">
+</div>
 ```
 
 ### Slots
