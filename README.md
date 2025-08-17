@@ -89,7 +89,7 @@ You can use the following artisan command:
 php artisan make:view components.number-input
 ```
 
-Then add a `<script setup>` tag and `{{ $attributes }}` as described below. Once you've defined your props, you can try passing data to the component from outside the outside.
+Then add a `<script setup>` tag and `{{ $attributes }}` as described below. Once you've defined your props, you can try passing data to the component from the outside.
 
 ### <script setup>
 
