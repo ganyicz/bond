@@ -123,23 +123,29 @@ Props let you pass reactive data from outside into your component. Define them i
 ```html
 <script setup>
     mount((props: {
-        step: number,
+        message: text,
     }) => ({
         ...
     }))
 </script>
 ```
 
-Once defined, pass any Alpine or Livewire variable as prop using the `x-` prefix:
+Props can be accessed inside the `mount` method and in the template using the `props.` prefix.
 
 ```html
-<x-number-input
-    x-step="outer"
-    x-max="$wire.limit"
+<span x-text="props.message"></span>
+```
+
+Once defined, any Alpine or Livewire variable can be passed in as a prop using the `x-` prefix:
+
+```html
+<x-alert
+    x-message="lastError.text"
+    x-open="$wire.open"
 />
 ```
 
-All props are two-way bound by default. The `outer` value will reactively update when the `step` variable changes inside the component and vice versa. (This behavior might change in future releases.)
+All props are two-way bound by default. The `message` inside component will reactively update when the outer variable changes and vice versa. (This behavior might change in future releases.)
 
 You can also pass static values like numbers, strings or functions.
 
@@ -163,7 +169,7 @@ Bond components are isolated by default, which also applies to slots. The conten
 </div>
 ```
 
-To make slot behave as expected, wrap `{{ $slot }}` inside your component with an element that has an `x-slot` directive. This will reset the scope to the parent:
+To make slot behave as expected, wrap it in an element with an `x-slot` directive inside your component. This will reset the scope to the parent:
 
 ```html
 <div {{ $attributes }}>
