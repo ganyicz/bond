@@ -73,7 +73,15 @@ Bond will only load in files with language mode set to `Blade`.
 
 ## Quick guide
 
-Bond is intended to be used within Blade components. To start, simply create a new Blade component in `resources/views/components` and add a `<script setup>` tag and `{{ $attributes }}` as described below.
+### Creating a new component
+
+Bond is intended to be used within Blade components. To start, simply create a new Blade component in `resources/views/components`. You can use the following artisan command:
+
+```bash
+php artisan make:view components.number-input
+```
+
+Then add a `<script setup>` tag and `{{ $attributes }}` as described below.
 
 ### <script setup>
 
