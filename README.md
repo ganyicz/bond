@@ -71,7 +71,9 @@ Make sure to also install the official [Laravel extension](https://marketplace.v
 
 Bond will only load in files with language mode set to `Blade`.
 
-## Features
+## Quick guide
+
+Bond is intended to be used within Blade components. To start, simply create a new Blade component in `resources/views/components` and add a `<script setup>` tag and `{{ $attributes }}` as described below.
 
 ### <script setup>
 
@@ -212,7 +214,7 @@ With Bond, you can import SVGs and render them dynamically with `x-html`:
 </div>
 ```
 
-This will likely be revisited in the next release.
+This will likely be revisited in the next release with a more structured approach to icons.
 
 ### TypeScript
 
@@ -221,7 +223,7 @@ Bond uses TypeScript to provide a terse syntax for props and also to power the I
 Options for both enabling `strict` mode and fully opting out of TypeScript will be available in the future.
 
 > [!IMPORTANT]
-> TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled, so using TypeScript in them will cause runtime errors.
+> TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled and writing types in them will cause runtime errors.
 
 #### Adding types to properties
 
