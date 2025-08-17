@@ -73,9 +73,9 @@ Bond will only load in files with language mode set to `Blade`.
 
 ## Quick guide
 
-Make sure to read documentations for [Alpine.js](https://alpinejs.dev/start-here) and [Laravel Blade](https://laravel.com/docs/12.x/blade) first. Bond supports all the same features.
+Make sure you are familiar with both [Alpine.js](https://alpinejs.dev/start-here) and [Laravel Blade](https://laravel.com/docs/12.x/blade), as Bond builds on top of these technologies and supports all their features.
 
-First, make sure your Vite development server is running:
+When ready, start your Vite development server:
 
 ```bash
 npm run dev
@@ -83,9 +83,7 @@ npm run dev
 
 ### Creating a new component
 
-Bond is intended to be used within Blade components. To start, simply create a new Blade component in `resources/views/components`.
-
-You can use the following artisan command:
+Bond is intended to be used within Blade components. Create one in `resources/views/components`. You can use the following artisan command:
 
 ```bash
 php artisan make:view components.alert
@@ -166,7 +164,7 @@ You can also pass static values like numbers, strings or functions.
 
 ### Defining data
 
-To define data and functions on your component, add them on the object returned from the `mount` function callback. To reference them within the object, use the `this` keyword. You can access them in the template directly without any prefix.
+To define data and functions on your component, add them to the object returned from the `mount` function callback. Use the `this` keyword when referencing them within the object. In the template, you can access them directly without any prefix.
 
 ```html
 <script setup>
