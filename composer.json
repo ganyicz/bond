@@ -1,0 +1,25 @@
+{
+    "name": "ganyicz/bond",
+    "description": "Modern component authoring for Laravel Blade and Alpine.js",
+    "keywords": [
+        "laravel",
+        "blade",
+        "alpinejs"
+    ],
+    "license": "MIT",
+    "require": {
+        "laravel/framework": "^11.0 | ^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ganyicz\\Bond\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ganyicz\\Bond\\BondServiceProvider"
+            ]
+        }
+    }
+}
