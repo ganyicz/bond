@@ -1,6 +1,6 @@
 ![Banner](https://raw.githubusercontent.com/ganyicz/bond/main/art/banner.png)
 
-> ⚠️ **Early Preview:**  
+> ⚠️ **Alpha release:**  
 > This package is currently under active development and not yet intended for production use. Feedback and contributions are welcome!
 
 Bond brings modern component authoring to Laravel Blade using Alpine.js. It introduces a few features inspired by React and Vue, making it easier to write structured, maintainable components. Bond also ships with a VS Code extension that adds syntax highlighting, autocomplete, and error checking.
