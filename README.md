@@ -73,17 +73,23 @@ Bond will only load in files with language mode set to `Blade`.
 
 ## Quick guide
 
+First, make sure your Vite development server is running:
+
+```bash
+npm run dev
+```
+
 ### Creating a new component
 
-Bond is intended to be used within Blade components.
+Bond is intended to be used within Blade components. To start, simply create a new Blade component in `resources/views/components`.
 
-To start, simply create a new Blade component in `resources/views/components`. You can use the following artisan command:
+You can use the following artisan command:
 
 ```bash
 php artisan make:view components.number-input
 ```
 
-Then add a `<script setup>` tag and `{{ $attributes }}` as described below.
+Then add a `<script setup>` tag and `{{ $attributes }}` as described below. Once you've defined your props, you can try passing data to the component from outside the outside.
 
 ### <script setup>
 
@@ -92,9 +98,9 @@ This is where you'll define props, state and functions of this component. Bond\`
 ```html
 <script setup>
     mount((props: {
-        ...
+        //
     }) => ({
-        ...
+        //
     }))
 </script>
 ```
