@@ -57,7 +57,7 @@ And register them in your layout:
 ```diff
 <head>
 +   <script src="{{ asset('vendor/alpine-bond-plugin.js') }}"></script>
-+   @vite(['resources/css/app.css', 'resources/js/bond.js'])
++   @vite([..., 'resources/js/bond.js'])
 </head>
 ```
 
@@ -65,18 +65,27 @@ These must be placed in the <head> tag, with the plugin script registered first.
 
 ## VS Code Extension
 
-For the best development experience, install the [Bond VS Code extension](https://marketplace.visualstudio.com/items?itemName=ganyicz.bond). It provides syntax highlighting, autocomplete, and error checking for both Bond components and Alpine.js attributes.
-
-The extension will be open-sourced in a future release.
+For the best development experience, install the [Bond VS Code extension](https://marketplace.visualstudio.com/items?itemName=ganyicz.bond). It provides syntax highlighting, autocomplete, and error checking for both Bond components and Alpine.js attributes. The extension will be open-sourced in a future release.
 
 ## Features
 
 ### <script setup>
 
-The `<script setup>` tag separates your JavaScript logic from your Blade template. Bond extracts and bundles this code into a single file using Vite.
+The `<script setup>` tag separates your JavaScript logic from your Blade template. Bond extracts and bundles this code into a single file using Vite. The component will be mounted on the element where you place `{{ $attributes }}`.
 
-The component will be mounted on the element where you place `{{ $attributes }}`. This is typically the root element of your component and is required to bind its logic to the DOM.
+```html
+<script setup>
+    mount((props: {
+        ...
+    }) => ({
+        ...
+    }))
+</script>
 
+<div {{ $attributes }}>
+    ...
+</div>
+```
 
 > [!IMPORTANT]
 > Components using <script setup> are isolated from the outside scope. To pass data in, use props or slots.
@@ -182,7 +191,9 @@ Since Bond compiles <script setup> tags with Vite, you can use any import suppor
 
 ### Icons
 
-Dynamic icons in Alpine usually require rendering all icons and toggling with `x-show`. With Bond, you can import SVGs and render them dynamically with `x-html`:
+Dynamic icons in Alpine usually require rendering all icons and toggling with `x-show`.
+
+With Bond, you can import SVGs and render them dynamically with `x-html`:
 
 ```html
 <script setup>
@@ -263,7 +274,7 @@ The example above would be compiled to:
 
 Alpine requires wrapping conditional or loop logic in `<template>` tags, which can be verbose. Bond will introduce a cleaner syntax that will also enable real `else` statements. 
 
-The syntax below was designed to be visually distinct from Blade directives, making it easy to distinguish between the two and its HTML-like structure will be easy to compile to Alpine.js code.
+The syntax below was designed to be visually distinct from Blade directives and its HTML-like structure will be easy to compile to Alpine.js code.
 
 ```html
 <!-- This is NOT yet supported -->
@@ -307,7 +318,7 @@ At runtime, `{name}` will be replaced with the actual value.
 
 #### Cross-file Intellisense (VS Code)
 
-The Bond VS Code extension will provide autocomplete and type checking for props on the outside of the component, ensuring type safety across multiple files.
+The Bond VS Code extension will provide autocomplete and type checking for props on the outside of the component, ensuring type safety across files.
 
 #### Common error diagnostics (VS Code)
 
@@ -322,11 +333,11 @@ While Bond primarily augments Alpine.js, several Blade-specific enhancements wou
 ```html
 <!-- This is NOT yet supported -->
 @export
-<div>This is <x-summary></div>
+<div>This is (x-summary)</div>
 @export('title')
-<h3>This is <x-summary.title></h3>
+<h3>This is (x-summary.title)</h3>
 @export('header')
-<div>This is <x-summary.header></div>
+<div>This is (x-summary.header)</div>
 @endexport
 ```
 
