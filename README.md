@@ -93,7 +93,7 @@ Then add a `<script setup>` tag and `{{ $attributes }}` as described below.
 
 ### `<script setup>`
 
-This is where you'll define props, state and functions of this component. Bond\`s Vite plugin will scan all Blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle them into a single file. The script tags will never actually get rendered on the page.
+This is where you'll define props, state and functions of this component. Bond\`s Vite plugin will scan all Blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle it into a single JavaScript file. The script tags will never actually get rendered on the page. 
 
 ```html
 <script setup>
@@ -105,7 +105,10 @@ This is where you'll define props, state and functions of this component. Bond\`
 </script>
 ```
 
-The component gets automatically mounted to the elment where you place your `{{ $attributes }}`. In the background, Bond just adds directives like `x-data` and `x-component` to your attributes to identify and initialize the component.
+> [!IMPORTANT]
+> Since the code will get extracted into a JavaScript file, you cannot use Blade within the script tag.
+
+The component gets automatically mounted on the elment where you place your `{{ $attributes }}`. In the background, Bond just adds directives like `x-data` and `x-component` to your attributes to identify and initialize the component.
 
 ```html
 <div {{ $attributes }}> <!-- This will be the root -->
@@ -164,7 +167,7 @@ You can also pass static values like numbers, strings or functions.
 
 ### Defining data
 
-To define data and functions on your component, add them to the object returned from the `mount` function callback. Use the `this` keyword when referencing them within the object. In the template, you can access them directly without any prefix.
+To define data and functions on your component, use the object returned from the `mount` function callback. When referencing data within the object, you must use the `this` keyword, while in the template, you can access it directly without any prefix.
 
 ```html
 <script setup>
@@ -184,8 +187,8 @@ To define data and functions on your component, add them to the object returned 
 </script>
 
 <div {{ $attributes }}>
-    <span x-text="formattedMessage"></span>
     <button x-on:click="toggle">Toggle</button>
+    <span x-text="formattedMessage"></span>
 </div>
 ```
 
