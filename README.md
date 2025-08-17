@@ -160,7 +160,7 @@ You can also pass static values like numbers, strings or functions.
 ```
 
 > [!CAUTION]
-> Prop names cannot conflict with Alpine.js directives. For example, you cannot use `on`,`model` or `text` as prop names. For full list of reserved names, see the [Alpine.js docs](https://alpinejs.dev/start-here).
+> Prop names cannot conflict with Alpine.js directives. For example, you cannot use `on`,`model` or `text`. For full list of reserved names, see the list of directives in [Alpine.js docs](https://alpinejs.dev/start-here).
 
 ### Defining data
 
