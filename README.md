@@ -27,7 +27,7 @@ Next, update your vite.config.js to register Bond:
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
-+ import bond from './vendor/ganyicz/bond/js/vite';
++ import bond from './vendor/ganyicz/bond/dist/vite-plugin';
 
 export default defineConfig({
     plugins: [
@@ -88,12 +88,12 @@ Bond is intended to be used within Blade components. To start, simply create a n
 You can use the following artisan command:
 
 ```bash
-php artisan make:view components.number-input
+php artisan make:view components.alert
 ```
 
-Then add a `<script setup>` tag and `{{ $attributes }}` as described below. Once you've defined your props, you can try passing data to the component from the outside.
+Then add a `<script setup>` tag and `{{ $attributes }}` as described below.
 
-### <script setup>
+### `<script setup>`
 
 This is where you'll define props, state and functions of this component. Bond\`s Vite plugin will scan all Blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle them into a single file. The script tags will never actually get rendered on the page.
 
@@ -118,7 +118,7 @@ The component gets automatically mounted to the elment where you place your `{{ 
 > [!IMPORTANT]
 > Components using `<script setup>` are isolated from the outside scope by design. To pass data in, use props or slots.
 
-### Props
+### Defining props
 
 Props let you pass reactive data from outside into your component. Define them in the callback parameter of the mount function with a type annotation:
 
@@ -138,11 +138,13 @@ Props can be accessed inside the `mount` method and in the template using the `p
 <span x-text="props.message"></span>
 ```
 
+### Passing props
+
 Once defined, any Alpine or Livewire variable can be passed in as a prop using the `x-` prefix:
 
 ```html
 <x-alert
-    x-message="lastError.text"
+    x-message="errors[0]"
     x-open="$wire.open"
 />
 ```
@@ -159,44 +161,67 @@ You can also pass static values like numbers, strings or functions.
 />
 ```
 
-### Data
+> [!CAUTION]
+> Prop names cannot conflict with Alpine.js directives. For example, you cannot use `on`,`model` or `text` as prop names. For full list of reserved names, see the [Alpine.js docs](https://alpinejs.dev/start-here).
+
+### Defining data
 
 To define data and functions on your component, add them on the object returned from the `mount` function callback. To reference them within the object, use the `this` keyword. You can access them in the template directly without any prefix.
 
 ```html
 <script setup>
     mount((props: {
-        message: text,
-        onclosed: () => void
+        message: string,
     }) => ({
-        close() {
-            this.onclosed()
-        }
+        uppercase: false,
+        toggle() {
+            this.uppercase = !this.uppercase
+        },
         get formattedMessage() {
-            this.message.toUpperCase()
-        }
+            return this.uppercase
+                ? props.message.toUpperCase()
+                : props.message
+        },
     }))
 </script>
 
 <div {{ $attributes }}>
     <span x-text="formattedMessage"></span>
-    <button x-on:click="close">
+    <button x-on:click="toggle">Toggle</button>
 </div>
 ```
 
-### Slots
+### Using components
 
-Bond components are isolated by default, which also applies to slots. The content will not have access to the parent scope by default:
+After you've defined your component, you can use it in your Blade templates like this:
 
 ```html
-<div x-data="{ message: 'You have exceeded your quota' }">
+<div x-data="{ errors: ['You have exceeded your quota'] }">
+    <x-alert x-message="errors[0]" />
+</div>
+```
+
+While this is a simple example, you can use these patterns to build complex components with multiple props, two-way data binding, integrate with Livewire and more.
+
+### Slots
+
+Bond components are isolated, which also applies to slots. Any content you pass into a slot will NOT have access to the parent scope by default.
+
+Let's use the example from before but instead of passing the message as a prop, we will use a slot.
+
+```html
+<!-- This will throw an error -->
+
+<div x-data="{ errors: ['You have exceeded your quota'] }">
     <x-alert>
-        <span x-text="message"></span> <!-- message is undefined -->
+        <span x-text="errors[0]"></span> <!-- errors is undefined -->
     </x-alert>
 </div>
 ```
 
-To make slot behave as expected, wrap it in an element with an `x-slot` directive inside your component. This will reset the scope to the parent:
+The `errors` variable will not be accessible.
+
+To make slot behave as expected, wrap it in an element with an `x-slot` directive inside your component. This will reset the scope to the parent for any content inside the slot.
 
 ```html
 <div {{ $attributes }}>
@@ -289,7 +314,7 @@ If a property is not initialized immediately, use the `as` keyword to define its
 > [!IMPORTANT]
 > TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled and using types in them will cause runtime errors.
 
-### Roadmap
+## Roadmap
 
 > [!WARNING]
 > The following features are planned but not yet implemented. Feedback and contributions are encouraged.
