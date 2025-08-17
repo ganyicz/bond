@@ -87,7 +87,7 @@ Then add a `<script setup>` tag and `{{ $attributes }}` as described below.
 
 ### <script setup>
 
-This is where you'll define props, state and functions of this component. Bond\`s Vite plugin will scan all blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle them into a single file. The script tags will never actually get rendered on the page.
+This is where you'll define props, state and functions of this component. Bond\`s Vite plugin will scan all Blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle them into a single file. The script tags will never actually get rendered on the page.
 
 ```html
 <script setup>
@@ -167,7 +167,20 @@ To make slot behave as expected, wrap `{{ $slot }}` inside your component with a
 
 > [!IMPORTANT]
 > Attributes added to an element with x-slot will also use the outside scope, not just its children.
- 
+
+### Imports
+
+Since Bond compiles `<script setup>` tags with Vite, you can use any import supported in a JavaScript/TypeScript file:
+
+```html
+<script setup>
+    import { twMerge } from 'tailwind-merge'
+    import { createTodo } from '@/todo'
+    import type { TodoItem } from '@/types'
+    import check from '@resources/img/icons/check.svg?raw'
+</script>
+```
+
 ### Else statement
 
 Alpine does not support else statements out of the box. Bond adds a _partial_ support for it. The limitation is that the template with `x-else` directive must be inside the parent template.
@@ -191,19 +204,6 @@ A simpler custom syntax for control statements is planned:
 <else>
     Your subscription has expired
 </if>
-```
-
-### Imports
-
-Since Bond compiles `<script setup>` tags with Vite, you can use any import supported in a JavaScript/TypeScript file:
-
-```html
-<script setup>
-    import { twMerge } from 'tailwind-merge'
-    import { createTodo } from '@/todo'
-    import type { TodoItem } from '@/types'
-    import check from '@resources/img/icons/check.svg?raw'
-</script>
 ```
 
 ### Icons
@@ -235,9 +235,6 @@ Bond uses TypeScript to provide a terse syntax for props and also to power the I
 
 Options for both enabling `strict` mode and fully opting out of TypeScript will be available in the future.
 
-> [!IMPORTANT]
-> TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled and writing types in them will cause runtime errors.
-
 #### Adding types to properties
 
 If a property is not initialized immediately, use the `as` keyword to define its type:
@@ -249,6 +246,9 @@ If a property is not initialized immediately, use the `as` keyword to define its
     }))
 </script>
 ```
+
+> [!IMPORTANT]
+> TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled and using types in them will cause runtime errors.
 
 ### Roadmap
 
