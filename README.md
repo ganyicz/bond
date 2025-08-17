@@ -124,10 +124,13 @@ Props let you pass reactive data from outside into your component. Define them i
 </script>
 ```
 
-Once defined, pass props in using the `x-` prefix:
+Once defined, pass any Alpine or Livewire variable as prop using the `x-` prefix:
 
 ```html
-<x-number-input x-step="outer" x-max="$wire.limit" />
+<x-number-input
+    x-step="outer"
+    x-max="$wire.limit"
+/>
 ```
 
 All props are two-way bound by default. The `outer` value will reactively update when the `step` variable changes inside the component and vice versa. (This behavior might change in future releases.)
