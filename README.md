@@ -87,7 +87,7 @@ Then add a `<script setup>` tag and `{{ $attributes }}` as described below.
 
 ### <script setup>
 
-Bond\`s Vite plugin scans all blade files within your `resources/views` directory, extracts code from `<script setup>` tags and bundles them into a single file using Vite. The script tags will never actually get rendered on the page.
+This is where you'll define props, state and functions of this component. Bond\`s Vite plugin will scan all blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle them into a single file. The script tags will never actually get rendered on the page.
 
 ```html
 <script setup>
