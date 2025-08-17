@@ -167,7 +167,7 @@ You can also pass static values like numbers, strings or functions.
 
 ### Defining data
 
-To define data and functions on your component, use the object returned from the `mount` function callback. When referencing data within the object, you must use the `this` keyword, while in the template, you can access it directly without any prefix.
+To define data and functions on your component, use the object returned from the `mount` function callback. When referencing data within that object, you must use the `this` keyword. In the template, you can access data directly without any prefix.
 
 ```html
 <script setup>
