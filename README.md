@@ -222,7 +222,7 @@ Let's use the example from before, but instead of passing the message as a prop,
 
 The `errors` variable will not be accessible.
 
-To make the slot behave as expected, wrap it in an element with an `x-slot` directive inside your component. This will reset the scope to the parent for any content inside the slot.
+To make the slot behave as expected, wrap it in an element with an `x-slot` directive inside your component.
 
 ```html
 <div {{ $attributes }}>
@@ -231,7 +231,7 @@ To make the slot behave as expected, wrap it in an element with an `x-slot` dire
 ```
 
 > [!IMPORTANT]
-> Attributes added to an element with `x-slot` will also use the outer scope, not just its children.
+> Directives used on an element with `x-slot` will also use the outer scope, not just its children.
 
 ### Imports
 
