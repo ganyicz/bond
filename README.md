@@ -1,7 +1,7 @@
 ![Banner](https://raw.githubusercontent.com/ganyicz/bond/main/art/banner.png)
 
 > ⚠️ **Alpha release:**  
-> This package is currently under active development and not yet intended for production use, it might not even work on your setup and is best to try on a fresh Laravel project. Feedback and contributions are welcome!
+> This package is currently under active development and not yet intended for production use; it might not even work on your setup, and it is best to try on a fresh Laravel project. Feedback and contributions are welcome!
 
 Bond brings modern component authoring to Laravel Blade and Alpine.js. It introduces a few features inspired by React and Vue, making it easier to write structured, maintainable components. Bond also ships with a VS Code extension that adds syntax highlighting, autocomplete, and error checking.
 
@@ -21,7 +21,7 @@ import 'virtual:bond';
 
 Bond will compile all scripts extracted from your Blade files into this file.
 
-Next, update your vite.config.js to register Bond:
+Next, update your `vite.config.js` to register Bond:
 
 ```diff
 import { defineConfig } from 'vite';
@@ -83,7 +83,7 @@ npm run dev
 
 ### Creating a new component
 
-Bond is intended to be used within Blade components. Create one in `resources/views/components`. You can use the following artisan command:
+Bond is intended to be used within Blade components. Create one in `resources/views/components`. You can use the following Artisan command:
 
 ```bash
 php artisan make:view components.alert
@@ -93,7 +93,7 @@ Then add a `<script setup>` tag and `{{ $attributes }}` as described below.
 
 ### `<script setup>`
 
-This is where you'll define props, state and functions of this component. Bond\`s Vite plugin will scan all Blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle it into a single JavaScript file. The script tags will never actually get rendered on the page. 
+This is where you'll define props, state, and functions for this component. Bond’s Vite plugin will scan all Blade files within your `resources/views` directory, extract code from `<script setup>` tags and bundle it into a single JavaScript file. The script tags will never actually be rendered on the page. 
 
 ```html
 <script setup>
@@ -108,7 +108,7 @@ This is where you'll define props, state and functions of this component. Bond\`
 > [!IMPORTANT]
 > Since the code will get extracted into a JavaScript file, you cannot use Blade within the script tag.
 
-The component gets automatically mounted on the elment where you place your `{{ $attributes }}`. In the background, Bond just adds directives like `x-data` and `x-component` to your attributes to identify and initialize the component.
+The component gets automatically mounted on the element where you place your `{{ $attributes }}`. In the background, Bond just adds directives like `x-data` and `x-component` to your attributes to identify and initialize the component.
 
 ```html
 <div {{ $attributes }}> <!-- This will be the root -->
@@ -117,7 +117,7 @@ The component gets automatically mounted on the elment where you place your `{{ 
 ```
 
 > [!IMPORTANT]
-> Components using `<script setup>` are isolated from the outside scope by design. To pass data in, use props or slots.
+> Components using `<script setup>` are isolated from the outer scope by design. To pass data in, use props or slots.
 
 ### Defining props
 
@@ -126,14 +126,14 @@ Props let you pass reactive data from outside into your component. Define them i
 ```html
 <script setup>
     mount((props: {
-        message: text,
+        message: string,
     }) => ({
         //
     }))
 </script>
 ```
 
-Props can be accessed inside the `mount` method and in the template using the `props.` prefix.
+Props can be accessed inside the `mount` function and in the template using the `props.` prefix.
 
 ```html
 <span x-text="props.message"></span>
@@ -150,9 +150,9 @@ Once defined, any Alpine or Livewire variable can be passed in as a prop using t
 />
 ```
 
-All props are two-way bound by default. The `message` inside component will reactively update when the outer variable changes and vice versa. (This behavior might change in future releases.)
+All props are two-way bound by default. The `message` inside the component will reactively update when the outer variable changes and vice versa. (This behavior might change in future releases.)
 
-You can also pass static values like numbers, strings or functions.
+You can also pass static values like numbers, strings, or functions.
 
 ```html
 <x-number-input
@@ -163,7 +163,7 @@ You can also pass static values like numbers, strings or functions.
 ```
 
 > [!CAUTION]
-> Prop names cannot conflict with Alpine.js directives. For example, you cannot use `on`,`model` or `text`. For full list of reserved names, see the list of directives in [Alpine.js docs](https://alpinejs.dev/start-here).
+> Prop names cannot conflict with Alpine.js directives. For example, you cannot use `on`, `model`, or `text`. For the full list of reserved names, see the list of directives in [Alpine.js docs](https://alpinejs.dev/start-here).
 
 ### Defining data
 
@@ -208,7 +208,7 @@ While this is a simple example, you can use these patterns to build complex comp
 
 Bond components are isolated, which also applies to slots. Any content you pass into a slot will NOT have access to the parent scope by default.
 
-Let's use the example from before but instead of passing the message as a prop, we will use a slot.
+Let's use the example from before, but instead of passing the message as a prop, we will use a slot.
 
 ```html
 <!-- This will throw an error -->
@@ -222,7 +222,7 @@ Let's use the example from before but instead of passing the message as a prop, 
 
 The `errors` variable will not be accessible.
 
-To make slot behave as expected, wrap it in an element with an `x-slot` directive inside your component. This will reset the scope to the parent for any content inside the slot.
+To make the slot behave as expected, wrap it in an element with an `x-slot` directive inside your component. This will reset the scope to the parent for any content inside the slot.
 
 ```html
 <div {{ $attributes }}>
@@ -231,7 +231,7 @@ To make slot behave as expected, wrap it in an element with an `x-slot` directiv
 ```
 
 > [!IMPORTANT]
-> Attributes added to an element with x-slot will also use the outside scope, not just its children.
+> Attributes added to an element with `x-slot` will also use the outer scope, not just its children.
 
 ### Imports
 
@@ -248,7 +248,7 @@ Since Bond compiles `<script setup>` tags with Vite, you can use any import supp
 
 ### Else statement
 
-Alpine does not support else statements out of the box. Bond adds a _partial_ support for it. The limitation is that the template with `x-else` directive must be inside the parent template.
+Alpine does not support else statements out of the box. Bond adds _partial_ support for it. The limitation is that the template with the `x-else` directive must be inside the parent template.
 
 ```html
 <template x-if="active">
@@ -296,7 +296,7 @@ This will likely be revisited in the next release with a more structured approac
 
 ### TypeScript
 
-Bond uses TypeScript to provide a terse syntax for props and also to power the IDE features. However, it disables the `strict` mode by default. This menas you are not forced to use types. You can write regular JavaScript without getting type errors but still get autocomplete and type hints in your IDE.
+Bond uses TypeScript to provide a terse syntax for props and also to power the IDE features. However, it disables the `strict` mode by default. This means you are not forced to use types. You can write regular JavaScript without getting type errors, but still get autocomplete and type hints in your IDE.
 
 Options for both enabling `strict` mode and fully opting out of TypeScript will be available in the future.
 
@@ -313,7 +313,7 @@ If a property is not initialized immediately, use the `as` keyword to define its
 ```
 
 > [!IMPORTANT]
-> TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled and using types in them will cause runtime errors.
+> TypeScript syntax is only supported inside `<script setup>`. Alpine expressions are not bundled, and using types in them will cause runtime errors.
 
 ## Roadmap
 
@@ -398,13 +398,13 @@ Bond will add support for inline template interpolation. This lets you write exp
 
 `{name}` will be replaced with the actual value at runtime.
 
-#### Cross-file Intellisense (VS Code)
+#### Cross-file IntelliSense (VS Code)
 
 The Bond VS Code extension will provide autocomplete and type checking for props on the outside of the component, ensuring type safety across files.
 
 #### Common error diagnostics (VS Code)
 
-The Bond VS Code extension will include diagnostics for common errors in Alpine.js attributes, such as missing key in a for loop, one root element per template tag and more.
+The Bond VS Code extension will include diagnostics for common errors in Alpine.js attributes, such as a missing key in a `x-for` loop, one root element per `<template>` tag, and more.
 
 #### Blade enhancements 
 
