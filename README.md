@@ -108,7 +108,7 @@ This is where you'll define props, state and functions of this component. Bond\`
 > [!IMPORTANT]
 > Since the code will get extracted into a JavaScript file, you cannot use Blade within the script tag.
 
-The component gets automatically mounted on the elment where you place your `{{ $attributes }}`. In the background, Bond just adds directives like `x-data` and `x-component` to your attributes to identify and initialize the component.
+The component gets automatically mounted on the element where you place your `{{ $attributes }}`. In the background, Bond just adds directives like `x-data` and `x-component` to your attributes to identify and initialize the component.
 
 ```html
 <div {{ $attributes }}> <!-- This will be the root -->
