@@ -241,16 +241,25 @@ Since Bond compiles `<script setup>` tags with Vite, you can use any import supp
 
 ```html
 <script setup>
+    // NPM module
     import { twMerge } from 'tailwind-merge'
+
+    // Local file
     import { createTodo } from '@/todo'
-    import type { TodoItem } from '@/types'
+
+    // Raw file content
     import check from '@resources/img/icons/check.svg?raw'
+
+    // Types
+    import type { TodoItem } from '@/types'
     
     mount(...)
 </script>
 ```
 
-The `@` alias points to `resources/js` by default. You can [customize the aliases](https://laravel.com/docs/12.x/vite#aliases) in your vite.config.js file, however this will not reflect in the VS Code extension at the moment and only the default alias will work in your IDE.
+The `@` alias points to `resources/js` by default. You can [customize the aliases](https://laravel.com/docs/12.x/vite#aliases) in your `vite.config.js` file, however this will not reflect in the VS Code extension at the moment and only the default alias will work in your IDE.
+
+Make sure to always import types using the `import type` syntax to avoid issues.
 
 ### Else statement
 
