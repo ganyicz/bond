@@ -128,7 +128,9 @@ Props let you pass reactive data from outside into your component. Define them i
     mount((props: {
         message: string,
     }) => ({
-        //
+        init() {
+            console.log(props.message)
+        }
     }))
 </script>
 ```
