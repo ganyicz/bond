@@ -160,7 +160,7 @@ You can also pass static values like numbers, strings, or functions.
 <x-number-input
     x-step="0.1"
     x-format="'9.99'"
-    x-onincrement="() => console.log('incremented')"
+    x-on:increment="() => console.log('incremented')"
 />
 ```
 
