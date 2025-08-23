@@ -278,8 +278,8 @@ export default function bond(options = {}) {
         
         resolveId(id) {
             // Handle the main virtual module
-            if (id === virtualModuleId) {
-                return resolvedVirtualModuleId;
+            if (id.startsWith('virtual:bond')) {
+                return '\0' + id;
             }
             
             // Handle bond module alias
@@ -296,8 +296,8 @@ export default function bond(options = {}) {
         
         load(id) {
             // Handle the main virtual module that imports all blade scripts
-            if (id === resolvedVirtualModuleId) {
-                const bladeFiles = findBladeFiles(resolve(viewsPath));
+            if (id.startsWith('\0virtual:bond')) {
+                const bladeFiles = findBladeFiles(resolve(id.slice('\0virtual:bond/'.length) || viewsPath));
                 const imports = [];
                 
                 for (const filePath of bladeFiles) {

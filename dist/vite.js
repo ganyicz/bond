@@ -180,8 +180,8 @@ function bond(options = {}) {
       }
     },
     resolveId(id) {
-      if (id === virtualModuleId) {
-        return resolvedVirtualModuleId;
+      if (id.startsWith("virtual:bond")) {
+        return "\0" + id;
       }
       if (id === "bond") {
         return resolve(process.cwd(), "vendor/ganyicz/bond/dist/mount.js");
@@ -192,8 +192,8 @@ function bond(options = {}) {
       return null;
     },
     load(id) {
-      if (id === resolvedVirtualModuleId) {
-        const bladeFiles = findBladeFiles(resolve(viewsPath));
+      if (id.startsWith("\0virtual:bond")) {
+        const bladeFiles = findBladeFiles(resolve(id.slice("\0virtual:bond/".length) || viewsPath));
         const imports = [];
         for (const filePath of bladeFiles) {
           try {
