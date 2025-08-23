@@ -42,7 +42,7 @@ export interface Magics<T> {
      * The root element of the current component context.
      * Roots are typically defined by `x-data` directive.
      */
-    $root: GenericHTMLFormElement,
+    $root: HTMLElement,
     /**
      * Record of global reactive Alpine stores.
      */

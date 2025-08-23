@@ -1,18 +1,11 @@
 {
-  "name": "bond-laravel",
-  "version": "1.0.0",
-  "description": "Tools for Bond Laravel package",
   "private": true,
-  "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch"
+    "build:livewire": "node ./scripts/build-livewire.js"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
-  },
-  "dependencies": {
-    "chokidar": "^3.5.3",
-    "typescript": "^5.0.0"
+    "esbuild": "^0.23.0",
+    "typescript": "latest",
+    "@types/node": "latest"
   }
 }

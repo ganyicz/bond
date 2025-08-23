@@ -1,0 +1,27 @@
+{
+    "name": "@bond/language-core",
+    "version": "0.0.3",
+    "description": "Core parsing and language utilities for Bond",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "build": "esbuild src/index.ts --bundle --format=esm --outfile=dist/index.js --sourcemap && tsc --emitDeclarationOnly --outDir dist",
+        "dev": "npm run build -- --watch",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "vscode-html-languageservice": "^5.2.0"
+    },
+    "devDependencies": {
+        "esbuild": "^0.23.0",
+        "typescript": "^5.3.0",
+        "vitest": "^2.0.0"
+    }
+}

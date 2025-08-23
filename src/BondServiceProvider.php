@@ -4,8 +4,6 @@ namespace Ganyicz\Bond;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Collection;
-use Illuminate\View\ComponentAttributeBag;
 
 class BondServiceProvider extends ServiceProvider
 {
@@ -22,17 +20,6 @@ class BondServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__ . '/../js/alpine.js' => public_path('vendor/alpine-bond-plugin.js'),
-            ], 'bond-assets');
-        }
-
-        ComponentAttributeBag::macro('map', function ($callback) {
-            /** @var ComponentAttributeBag $this */
-            return new static((new Collection($this->attributes))->map($callback)->all());
-        });
-
         Blade::prepareStringsForCompilationUsing(function ($value) {
             $path = app('blade.compiler')->getPath();
 
@@ -44,11 +31,15 @@ class BondServiceProvider extends ServiceProvider
                         ->before('.blade.php')
                         ->replace('/', '.');
                     
-                    return <<<BLADE
+                    return
+                        <<<BLADE
                         @php
-                        \$attributes = \$attributes
-                            ->map(fn (\$v, \$k) => \$v === true && str_starts_with(\$k, 'x-') ? '' : \$v)
-                            ->merge(['x-data' => '', 'x-component' => '{$componentName}']);
+                        \$attributes = new \Illuminate\View\ComponentAttributeBag(
+                            collect(\$attributes)
+                                ->merge(['x-data' => true, 'x-component' => '{$componentName}'])
+                                ->map(fn (\$v, \$k) => str_starts_with(\$k, 'x-') && \$v === true ? '' : \$v)
+                                ->all()
+                        );
                         @endphp
                         BLADE
                     ;

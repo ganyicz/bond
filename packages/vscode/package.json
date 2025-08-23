@@ -1,0 +1,55 @@
+{
+    "name": "bond-vscode-extension",
+    "version": "0.0.3",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ganyicz/bond.git",
+        "directory": "packages/vscode"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "displayName": "Bond Language Features",
+    "description": "Bond Language Features",
+    "icon": "assets/icon.png",
+    "author": "ganyicz",
+    "publisher": "ganyicz",
+    "engines": {
+        "vscode": "^1.82.0"
+    },
+    "activationEvents": [
+        "onLanguage:blade"
+    ],
+    "main": "./dist/client.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "bond"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "bond",
+                "path": "./syntaxes/injection.json",
+                "scopeName": "text.html.bond.attribute",
+                "injectTo": [
+                    "text.html.php.blade"
+                ]
+            }
+        ]
+    },
+    "scripts": {
+        "build": "node scripts/build -- --minify",
+        "watch": "npm run build -- --watch",
+        "pack": "npm run build && vsce package --pre-release",
+        "release": "npm run build && vsce publish --pre-release"
+    },
+    "devDependencies": {
+        "@bond/language-server": "file:../language-server",
+        "@types/vscode": "^1.82.0",
+        "@volar/language-server": "~2.4.0",
+        "@volar/vscode": "~2.4.0",
+        "esbuild": "latest",
+        "vsce": "latest"
+    }
+}

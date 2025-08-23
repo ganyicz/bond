@@ -1,0 +1,16 @@
+{
+    "name": "@bond/alpine-plugin",
+    "version": "0.0.3",
+    "description": "Alpine.js plugin for Bond components",
+    "type": "module",
+    "main": "./dist/index.js",
+    "exports": "./dist/index.js",
+    "scripts": {
+        "build": "node esbuild.config.js",
+        "dev": "node esbuild.config.js --watch"
+    },
+    "devDependencies": {
+        "esbuild": "^0.23.0",
+        "@types/alpinejs": "^3.13.10"
+    }
+}

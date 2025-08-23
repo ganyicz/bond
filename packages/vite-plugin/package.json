@@ -1,0 +1,23 @@
+{
+    "name": "@bond/vite-plugin",
+    "version": "0.0.3",
+    "description": "Vite plugin for Bond components",
+    "type": "module",
+    "scripts": {
+        "build": "node esbuild.config.js",
+        "dev": "node esbuild.config.js --watch"
+    },
+    "dependencies": {
+        "@bond/language-core": "file:../language-core",
+        "chokidar": "^4.0.0",
+        "source-map": "^0.7.4",
+        "typescript": "latest"
+    },
+    "devDependencies": {
+        "esbuild": "^0.23.0",
+        "vite": "^5.0.0"
+    },
+    "peerDependencies": {
+        "vite": "^4.0.0 || ^5.0.0"
+    }
+}

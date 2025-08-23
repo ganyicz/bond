@@ -1,4 +1,5 @@
-import { readFileSync, existsSync, readdirSync } from "fs";
+// src/index.js
+import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 import { watch } from "chokidar";
 import ts from "typescript";
@@ -137,11 +138,6 @@ function bond(options = {}) {
     return id.includes("?bond");
   }
   function setupWatcher() {
-    const viewsDir = resolve(viewsPath);
-    const watcher = watch(`${viewsDir}/**/*.blade.php`, {
-      ignored: /(^|[\/\\])\../,
-      persistent: true
-    });
     function handleFileChange(filePath) {
       if (server) {
         const virtualModule = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
@@ -159,15 +155,15 @@ function bond(options = {}) {
         });
       }
     }
-    watcher.on("change", handleFileChange);
-    watcher.on("add", handleFileChange);
-    watcher.on("unlink", handleFileChange);
-    return watcher;
+    server.watcher.on("change", handleFileChange);
+    server.watcher.on("add", handleFileChange);
+    server.watcher.on("unlink", handleFileChange);
   }
   return {
-    name: "vite-blade-script-setup",
+    name: "vite-bond-plugin",
     configureServer(devServer) {
       server = devServer;
+      setupWatcher();
     },
     buildStart() {
       const bladeFiles = findBladeFiles(resolve(viewsPath));
@@ -188,7 +184,7 @@ function bond(options = {}) {
         return resolvedVirtualModuleId;
       }
       if (id === "bond") {
-        return resolve(process.cwd(), "vendor/ganyicz/bond/js/bond.js");
+        return resolve(process.cwd(), "vendor/ganyicz/bond/dist/mount.js");
       }
       if (isBladeScriptRequest(id)) {
         return id;
@@ -252,14 +248,10 @@ function bond(options = {}) {
         }
       }
       return null;
-    },
-    configResolved(config) {
-      if (config.command === "serve" && watchFiles) {
-        setupWatcher();
-      }
     }
   };
 }
 export {
   bond as default
 };
+//# sourceMappingURL=vite.js.map
