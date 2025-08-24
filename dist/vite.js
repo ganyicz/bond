@@ -1,12 +1,10 @@
-// src/index.js
+// src/index.ts
 import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
-import { watch } from "chokidar";
 import ts from "typescript";
 function bond(options = {}) {
   const {
-    viewsPath = "resources/views",
-    watchFiles = true
+    defaultViewsPath = "resources/views"
   } = options;
   let server;
   const virtualModuleId = "virtual:bond";
@@ -40,7 +38,7 @@ function bond(options = {}) {
     return match ? match[1].trim() : null;
   }
   function generateComponentName(filePath) {
-    const relativePath = filePath.replace(resolve(viewsPath), "").replace(/^\//, "").replace(/\.blade\.php$/, "").replace(/\//g, ".");
+    const relativePath = filePath.replace(resolve(defaultViewsPath), "").replace(/^\//, "").replace(/\.blade\.php$/, "").replace(/\//g, ".");
     return relativePath;
   }
   function extractPropNames(typeNode) {
@@ -140,19 +138,12 @@ function bond(options = {}) {
   function setupWatcher() {
     function handleFileChange(filePath) {
       if (server) {
-        const virtualModule = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
-        if (virtualModule) {
-          server.reloadModule(virtualModule);
-        }
         const cleanPath = filePath.replace(/\.blade\.php$/, "");
         const virtualScriptPath = `${cleanPath}.ts?bond`;
         const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
         if (scriptModule) {
           server.reloadModule(scriptModule);
         }
-        server.ws.send({
-          type: "full-reload"
-        });
       }
     }
     server.watcher.on("change", handleFileChange);
@@ -166,7 +157,7 @@ function bond(options = {}) {
       setupWatcher();
     },
     buildStart() {
-      const bladeFiles = findBladeFiles(resolve(viewsPath));
+      const bladeFiles = findBladeFiles(resolve(defaultViewsPath));
       for (const filePath of bladeFiles) {
         try {
           const content = readFileSync(filePath, "utf-8");
@@ -180,7 +171,7 @@ function bond(options = {}) {
       }
     },
     resolveId(id) {
-      if (id.startsWith("virtual:bond")) {
+      if (id.startsWith(virtualModuleId)) {
         return "\0" + id;
       }
       if (id === "bond") {
@@ -192,8 +183,8 @@ function bond(options = {}) {
       return null;
     },
     load(id) {
-      if (id.startsWith("\0virtual:bond")) {
-        const bladeFiles = findBladeFiles(resolve(id.slice("\0virtual:bond/".length) || viewsPath));
+      if (id.startsWith(resolvedVirtualModuleId)) {
+        const bladeFiles = findBladeFiles(resolve(id.slice(resolvedVirtualModuleId.length + 1) || defaultViewsPath));
         const imports = [];
         for (const filePath of bladeFiles) {
           try {

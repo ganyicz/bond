@@ -1,7 +1,7 @@
 import * as esbuild from 'esbuild';
 
 const options = {
-    entryPoints: ['src/index.js'],
+    entryPoints: ['./src/index.js'],
     bundle: true,
     platform: 'node',
     format: 'esm',

@@ -1,29 +1,33 @@
+import { extractScriptSetupContent } from '@bond/language-core';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
-import { watch } from 'chokidar';
 import ts from 'typescript';
+import { Plugin, ViteDevServer } from 'vite'
 
-export default function bond(options = {}) {
+interface PluginConfig {
+    defaultViewsPath?: string
+}
+
+export default function bond(options: PluginConfig = {}): Plugin {
     const {
-        viewsPath = 'resources/views',
-        watchFiles = true,
+        defaultViewsPath = 'resources/views/components',
     } = options;
     
-    let server;
+    let server: ViteDevServer;
     const virtualModuleId = 'virtual:bond';
     const resolvedVirtualModuleId = '\0' + virtualModuleId;
     
     /**
     * Find all .blade.php files recursively  
     */
-    function findBladeFiles(dir) {
+    function findBladeFiles(dir: string): string[] {
         if (!existsSync(dir)) {
             return [];
         }
         
-        const files = [];
+        const files: string[] = [];
         
-        function traverse(currentDir) {
+        function traverse(currentDir: string) {
             try {
                 const items = readdirSync(currentDir, { withFileTypes: true });
                 
@@ -49,7 +53,7 @@ export default function bond(options = {}) {
     /**
     * Extract <script setup> content from blade file (only first one)
     */
-    function extractScriptSetup(content) {
+    function extractScriptSetup(content: string): string | null {
         const scriptSetupRegex = /<script\s[^>]*\bsetup\b[^>]*>([\s\S]*?)<\/script>/i;
         const match = scriptSetupRegex.exec(content);
         
@@ -59,9 +63,9 @@ export default function bond(options = {}) {
     /**
     * Generate component name from file path
     */
-    function generateComponentName(filePath) {
+    function generateComponentName(filePath: string): string {
         const relativePath = filePath
-        .replace(resolve(viewsPath), '')
+        .replace(resolve(defaultViewsPath), '')
         .replace(/^\//, '')
         .replace(/\.blade\.php$/, '')
         .replace(/\//g, '.');
@@ -77,7 +81,7 @@ export default function bond(options = {}) {
             return [];
         }
         
-        const propNames = [];
+        const propNames: string[] = [];
         
         for (const member of typeNode.members) {
             if (ts.isPropertySignature(member) && member.name) {
@@ -93,7 +97,7 @@ export default function bond(options = {}) {
     /**
     * Transform mount() calls and add import if needed
     */
-    function transformMountCalls(code, filePath) {
+    function transformMountCalls(code: string, filePath: string): string {
         const componentName = generateComponentName(filePath);
         
         // Check if mount is used in the code
@@ -200,11 +204,10 @@ export default function bond(options = {}) {
         return finalCode;
     }
     
-    
     /**
     * Parse blade script request
     */
-    function parseBladeRequest(id) {
+    function parseBladeRequest(id: string) {
         const [filename] = id.split('?', 2);
         return { filename };
     }
@@ -212,7 +215,7 @@ export default function bond(options = {}) {
     /**
     * Check if this is a blade script request
     */
-    function isBladeScriptRequest(id) {
+    function isBladeScriptRequest(id: string) {
         return id.includes('?bond');
     }
     
@@ -220,27 +223,16 @@ export default function bond(options = {}) {
     * Setup file watcher for blade files
     */
     function setupWatcher() {
-        function handleFileChange(filePath) {
-            if (server) {
-                // Invalidate the main virtual module
-                const virtualModule = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
-                if (virtualModule) {
-                    server.reloadModule(virtualModule);
-                }
-                
+        function handleFileChange(filePath: string) {
+            if (server) {                
                 // Find and invalidate the corresponding virtual .ts?bond module
                 const cleanPath = filePath.replace(/\.blade\.php$/, '');
                 const virtualScriptPath = `${cleanPath}.ts?bond`;
-                
                 const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
+
                 if (scriptModule) {
                     server.reloadModule(scriptModule);
                 }
-                
-                // Force a full reload as fallback
-                server.ws.send({
-                    type: 'full-reload'
-                });
             }
         }
         
@@ -260,7 +252,7 @@ export default function bond(options = {}) {
         
         buildStart() {
             // During build, automatically discover and add blade files to the build
-            const bladeFiles = findBladeFiles(resolve(viewsPath));
+            const bladeFiles = findBladeFiles(resolve(defaultViewsPath));
             
             for (const filePath of bladeFiles) {
                 try {
@@ -278,7 +270,7 @@ export default function bond(options = {}) {
         
         resolveId(id) {
             // Handle the main virtual module
-            if (id.startsWith('virtual:bond')) {
+            if (id.startsWith(virtualModuleId)) {
                 return '\0' + id;
             }
             
@@ -296,9 +288,9 @@ export default function bond(options = {}) {
         
         load(id) {
             // Handle the main virtual module that imports all blade scripts
-            if (id.startsWith('\0virtual:bond')) {
-                const bladeFiles = findBladeFiles(resolve(id.slice('\0virtual:bond/'.length) || viewsPath));
-                const imports = [];
+            if (id.startsWith(resolvedVirtualModuleId)) {
+                const bladeFiles = findBladeFiles(resolve(id.slice(resolvedVirtualModuleId.length + 1) || defaultViewsPath));
+                const imports: string[] = [];
                 
                 for (const filePath of bladeFiles) {
                     try {
