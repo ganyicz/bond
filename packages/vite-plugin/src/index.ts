@@ -1,4 +1,4 @@
-import { extractMountFunction, extractScriptSetupContent, hasScriptSetup } from '@bond/language-core';
+import { extractAttributes, extractMountFunction, extractScriptSetupContent, hasScriptSetup } from '@bond/language-core';
 import * as fs from 'fs'
 import MagicString from 'magic-string';
 import { resolve, join } from 'path'
@@ -105,11 +105,24 @@ export default function bond(options: PluginConfig = {}): Plugin {
                 // Extract script & add import
                 ms.remove(0, script.start)
                 ms.remove(script.end, code.length)
-                ms.prepend(`import { mount } from '@bond/alpine-plugin'\n`)
+                ms.prepend(`import { mount, expressions } from '@bond/alpine-plugin'\n`)
 
                 const componentName = fullPath.replace(viewsPrefix + '/', '').replace('.blade.php', '').replaceAll('/', '.')
                 const props = getProps(mount.content)
                 ms.replace(/mount\(/, `mount('${componentName}', ${JSON.stringify(props)}, `)
+
+                const expressions = extractAttributes(code)
+                    .map(attr => JSON.stringify({
+                        name: attr.name,
+                        value: attr.code.content,
+                        debug: {
+                            node: code.substring(...attr.nodeRange),
+                            start: attr.code.start - attr.nodeRange[0],
+                            file: fullPath,
+                        }
+                    }))
+
+                ms.append(`\n\nexpressions('${componentName}', [\n${expressions.join(',\n')}\n])`)
 
                 return {
                     code: ms.toString(),

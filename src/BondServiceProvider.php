@@ -23,14 +23,18 @@ class BondServiceProvider extends ServiceProvider
         Blade::prepareStringsForCompilationUsing(function ($value) {
             $path = app('blade.compiler')->getPath();
 
-            return preg_replace_callback(
+            $componentName = str($path)
+                ->after(resource_path('views/'))
+                ->before('.blade.php')
+                ->replace('/', '.');
+
+            $hasScriptTag = false;
+
+            $value = preg_replace_callback(
                 '/<script\s[^>]*\bsetup\b[^>]*>.*?<\/script>/s',
-                function () use ($path) {
-                    $componentName = str($path)
-                        ->after(resource_path('views/'))
-                        ->before('.blade.php')
-                        ->replace('/', '.');
-                    
+                function () use ($componentName, &$hasScriptTag) {
+                    $hasScriptTag = true;
+
                     return
                         <<<BLADE
                         @php
@@ -46,6 +50,26 @@ class BondServiceProvider extends ServiceProvider
                 },
                 $value
             );
+
+            if (! $hasScriptTag) {
+                return $value;
+            }
+
+            $i = 0;
+
+            $value = preg_replace_callback(
+                '/\b(x-[\w.:\-_]+)\s*=\s*(["\'])(.*?)\2/su',
+                function () use ($componentName, &$i) {
+                    $attribute = "x-exp.{$i}=\"{$componentName}:{$i}\"";
+
+                    $i++;
+
+                    return $attribute;
+                },
+                $value
+            );
+
+            return $value;
         });
     }
 }

@@ -1,8 +1,13 @@
 export default function Bond(Alpine) {
     Alpine.components = {}
+    Alpine.expressions = {}
 
     Alpine.component = function(component, props, callback) {
         Alpine.components[component] = {props, callback}
+    }
+
+    Alpine.expressions = function(component, expressions) {
+        Alpine.expressions[component] = expressions
     }
 
     Alpine.directive('slot', (el, { expression }, { evaluate }) => {
@@ -36,6 +41,16 @@ export default function Bond(Alpine) {
 
         data['init'] && evaluate(data['init'])
     }).before('init')
+
+    Alpine.directive('exp', (el, {value, modifiers, expression}) => {
+        const component = expression.split(':')[0]
+        const index = parseInt(modifiers[0])
+        const exp = Alpine.expressions[component][index]
+
+        Alpine.bind(el, {
+            [exp.name]: `${exp.value}/*bond:${expression}*/`
+        })
+    }).before('ignore')
 
     Alpine.directive('if', (el, { expression }, { effect, cleanup }) => {
         if (el.tagName.toLowerCase() !== 'template') warn('x-if can only be used on a <template> tag', el)
@@ -146,10 +161,50 @@ function initProps(Alpine, el, props, ctx) {
             JSON.stringify(value)
         })
     }
+
+    Alpine.setErrorHandler((error, el, expression = undefined) => {
+        error = Object.assign( 
+            error ?? { message: 'No error message given.' }, 
+            { el, expression } )
+
+        const match = expression.match(/^(.*?)\/\*(bond:[^*]+)\*\//)
+        const bondExpression = getBondExpression(match[2])
+
+        if (bondExpression) {
+            const debug = bondExpression.debug
+            const underline = ' '.repeat(debug.start) + '^'.repeat(bondExpression.value.length)
+            const location = `%c${debug.node}\n${underline}%c\nat ${debug.file}`
+
+            console.warn(
+                `Alpine Expression Error:\n\n${error.message}\n\n${location}`,
+                'font-family: monospace; white-space: pre; font-variant-ligatures: none',
+                '',
+            )
+        } else {
+            console.warn(`Alpine Expression Error: ${error.message}\n\n${ expression ? 'Expression: \"' + match[1] + '\"\n\n' : '' }`, el)
+        }
+        
+        setTimeout( () => { throw error }, 0 )
+    })
+}
+
+function getBondExpression(expression) {
+    if (! expression.startsWith('bond:')) return undefined
+    if (! Alpine.expressions) return undefined
+
+    const [file, index] = expression.split(':').splice(1, 2)
+    
+    return Alpine.expressions[file]?.[index]
 }
 
 export function mount(component, props, callback) {
     document.addEventListener('alpine:init', () => {
         window.Alpine.component(component, props, callback)
+    })
+}
+
+export function expressions(component, expressions) {
+    document.addEventListener('alpine:init', () => {
+        window.Alpine.expressions(component, expressions)
     })
 }
