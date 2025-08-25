@@ -106,6 +106,7 @@ test('extracts HTML attributes', () => {
                 end: 30,
                 length: 17,
             },
+            line: 1,
             nodeRange: [0,134],
         },
         {
@@ -117,6 +118,7 @@ test('extracts HTML attributes', () => {
                 end: 58,
                 length: 8,
             },
+            line: 2,
             nodeRange: [37,127],
         },
         {
@@ -131,6 +133,7 @@ test('extracts HTML attributes', () => {
                 end: 114,
                 length: 42,
             },
+            line: 2,
             nodeRange: [37,127],
         }
     ])
@@ -154,6 +157,7 @@ test('extracts HTML attributes with blade', {skip: true}, () => {
                 end: 50,
                 length: 7,
             },
+            line: 3,
             nodeRange: [0,59],
         },
     ])

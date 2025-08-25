@@ -10,6 +10,7 @@ export interface ExtractedSourceCode {
 interface ExtractedAttribute {
     name: string,
     depth: number,
+    line: number,
     code: ExtractedSourceCode,
     nodeRange: [number, number]
 }
@@ -113,6 +114,15 @@ export function extractAttributes(code: string): ExtractedAttribute[] {
         withStartIndices: true,
         withEndIndices: true,
     });
+
+    let lines = [0];
+    let currentLine = 0
+    
+    for (let i = 0; i < code.length; i++) {
+        if (code[i] === '\n') {
+            lines.push(i + 1);
+        }
+    }
     
     function walkNode(node: any, depth: number = 1) {
         if (node.type === 'tag' && node.attribs) {
@@ -131,10 +141,19 @@ export function extractAttributes(code: string): ExtractedAttribute[] {
                     const valueContent = match[2];
                     const attrStart = nodeStart + match.index + match[0].indexOf(valueContent);
                     const attrEnd = attrStart + valueContent.length;
+
+                    for (let i = currentLine; i < lines.length; i++) {
+                        if (lines[i] <= attrStart) {
+                            currentLine++;
+                        } else {
+                            break;
+                        }
+                    }
                     
                     attributes.push({
                         name: attrName,
                         depth,
+                        line: currentLine,
                         code: {
                             content: valueContent,
                             start: attrStart,

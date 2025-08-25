@@ -2604,6 +2604,13 @@ function extractAttributes(code) {
     withStartIndices: true,
     withEndIndices: true
   });
+  let lines = [0];
+  let currentLine = 0;
+  for (let i = 0; i < code.length; i++) {
+    if (code[i] === "\n") {
+      lines.push(i + 1);
+    }
+  }
   function walkNode(node, depth = 1) {
     if (node.type === "tag" && node.attribs) {
       for (const [attrName] of Object.entries(node.attribs)) {
@@ -2618,9 +2625,17 @@ function extractAttributes(code) {
           const valueContent = match[2];
           const attrStart = nodeStart + match.index + match[0].indexOf(valueContent);
           const attrEnd = attrStart + valueContent.length;
+          for (let i = currentLine; i < lines.length; i++) {
+            if (lines[i] <= attrStart) {
+              currentLine++;
+            } else {
+              break;
+            }
+          }
           attributes.push({
             name: attrName,
             depth,
+            line: currentLine,
             code: {
               content: valueContent,
               start: attrStart,
@@ -3793,7 +3808,8 @@ function bond(options = {}) {
           debug: {
             node: code.substring(...attr.nodeRange),
             start: attr.code.start - attr.nodeRange[0],
-            file: fullPath
+            file: fullPath,
+            line: attr.line
           }
         }));
         ms.append(`

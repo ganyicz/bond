@@ -173,7 +173,7 @@ function initProps(Alpine, el, props, ctx) {
         if (bondExpression) {
             const debug = bondExpression.debug
             const underline = ' '.repeat(debug.start) + '^'.repeat(bondExpression.value.length)
-            const location = `%c${debug.node}\n${underline}%c\nat ${debug.file}`
+            const location = `%c${debug.node}\n${underline}%c\nat ${debug.file}:${debug.line}`
 
             console.warn(
                 `Alpine Expression Error:\n\n${error.message}\n\n${location}`,
