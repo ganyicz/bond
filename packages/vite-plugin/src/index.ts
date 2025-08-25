@@ -1,372 +1,181 @@
-import { extractScriptSetupContent } from '@bond/language-core';
-import { readFileSync, readdirSync, existsSync } from 'fs';
-import { resolve, join } from 'path';
-import ts from 'typescript';
+import { extractMountFunction, extractScriptSetupContent, hasScriptSetup } from '@bond/language-core';
+import * as fs from 'fs'
+import MagicString from 'magic-string';
+import { resolve, join } from 'path'
 import { Plugin, ViteDevServer } from 'vite'
+import ts from 'typescript'
 
 interface PluginConfig {
     defaultViewsPath?: string
+    viewsPrefix?: string
 }
 
 export default function bond(options: PluginConfig = {}): Plugin {
     const {
         defaultViewsPath = 'resources/views/components',
+        viewsPrefix = 'resources/views',
     } = options;
     
     let server: ViteDevServer;
     const virtualModuleId = 'virtual:bond';
     const resolvedVirtualModuleId = '\0' + virtualModuleId;
-    
-    /**
-    * Find all .blade.php files recursively  
-    */
-    function findBladeFiles(dir: string): string[] {
-        if (!existsSync(dir)) {
-            return [];
-        }
-        
-        const files: string[] = [];
-        
-        function traverse(currentDir: string) {
-            try {
-                const items = readdirSync(currentDir, { withFileTypes: true });
-                
-                for (const item of items) {
-                    const fullPath = join(currentDir, item.name);
-                    
-                    if (item.isDirectory()) {
-                        traverse(fullPath);
-                    } else if (item.name.endsWith('.blade.php')) {
-                        files.push(fullPath);
-                    }
-                }
-            } catch (error) {
-                console.warn(`[bond] Cannot read directory ${currentDir}:`, error.message);
-            }
-        }
-        
-        traverse(dir);
-        return files;
-    }
-    
-    
-    /**
-    * Extract <script setup> content from blade file (only first one)
-    */
-    function extractScriptSetup(content: string): string | null {
-        const scriptSetupRegex = /<script\s[^>]*\bsetup\b[^>]*>([\s\S]*?)<\/script>/i;
-        const match = scriptSetupRegex.exec(content);
-        
-        return match ? match[1].trim() : null;
-    }
-    
-    /**
-    * Generate component name from file path
-    */
-    function generateComponentName(filePath: string): string {
-        const relativePath = filePath
-        .replace(resolve(defaultViewsPath), '')
-        .replace(/^\//, '')
-        .replace(/\.blade\.php$/, '')
-        .replace(/\//g, '.');
-        
-        return relativePath;
-    }
-    
-    /**
-    * Extract prop names from TypeScript type (including optional properties)
-    */
-    function extractPropNames(typeNode) {
-        if (!ts.isTypeLiteralNode(typeNode)) {
-            return [];
-        }
-        
-        const propNames: string[] = [];
-        
-        for (const member of typeNode.members) {
-            if (ts.isPropertySignature(member) && member.name) {
-                if (ts.isIdentifier(member.name)) {
-                    propNames.push(member.name.text);
-                }
-            }
-        }
-        
-        return propNames;
-    }
-    
-    /**
-    * Transform mount() calls and add import if needed
-    */
-    function transformMountCalls(code: string, filePath: string): string {
-        const componentName = generateComponentName(filePath);
-        
-        // Check if mount is used in the code
-        const usesMountFunction = code.includes('mount(');
-        
-        // Create TypeScript source file
-        const sourceFile = ts.createSourceFile(
-            'temp.ts',
-            code,
-            ts.ScriptTarget.ESNext,
-            true
-        );
-        
-        // Track if we made any changes
-        let hasChanges = false;
-        
-        // Transform the AST
-        const transformer = (context) => {
-            return (rootNode) => {
-                function visit(node) {
-                    // Look for mount() call expressions
-                    if (ts.isCallExpression(node) && 
-                    ts.isIdentifier(node.expression) && 
-                    node.expression.text === 'mount') {
-                        
-                        hasChanges = true;
-                        
-                        // Get the callback parameter (first argument)
-                        const callbackArg = node.arguments[0];
-                        
-                        if (ts.isArrowFunction(callbackArg)) {
-                            let propNames = [];
-                            
-                            // Extract prop names if callback has parameters
-                            if (callbackArg.parameters.length > 0) {
-                                const firstParam = callbackArg.parameters[0];
-                                
-                                // Extract prop names from the parameter's type annotation
-                                if (firstParam.type) {
-                                    propNames = extractPropNames(firstParam.type);
-                                }
-                            }
-                            
-                            // Create new arrow function without the type annotation
-                            const newCallback = ts.factory.createArrowFunction(
-                                callbackArg.modifiers,
-                                callbackArg.typeParameters,
-                                callbackArg.parameters.map(param => 
-                                    ts.factory.createParameterDeclaration(
-                                        param.modifiers,
-                                        param.dotDotDotToken,
-                                        param.name,
-                                        param.questionToken,
-                                        undefined, // Remove type annotation
-                                        param.initializer
-                                    )
-                                ),
-                                callbackArg.type,
-                                callbackArg.equalsGreaterThanToken,
-                                callbackArg.body
-                            );
-                            
-                            // Create new mount call with component name, props array, and callback
-                            return ts.factory.createCallExpression(
-                                node.expression,
-                                node.typeArguments,
-                                [
-                                    ts.factory.createStringLiteral(componentName),
-                                    ts.factory.createArrayLiteralExpression(
-                                        propNames.map(name => ts.factory.createStringLiteral(name))
-                                    ),
-                                    newCallback
-                                ]
-                            );
-                        }
-                    }
-                    
-                    return ts.visitEachChild(node, visit, context);
-                }
-                
-                return ts.visitNode(rootNode, visit);
-            };
-        };
-        
-        // Apply the transformation
-        const result = ts.transform(sourceFile, [transformer]);
-        
-        let finalCode = code;
-        
-        if (hasChanges) {
-            // Print the transformed AST back to code
-            const printer = ts.createPrinter();
-            finalCode = printer.printFile(result.transformed[0]);
-        }
-        
-        result.dispose();
-        
-        // Add import only if mount function is used
-        if (usesMountFunction) {
-            const importStatement = "import { mount } from 'bond';\n\n";
-            finalCode = importStatement + finalCode;
-        }
-        
-        return finalCode;
-    }
-    
-    /**
-    * Parse blade script request
-    */
-    function parseBladeRequest(id: string) {
-        const [filename] = id.split('?', 2);
-        return { filename };
-    }
-    
-    /**
-    * Check if this is a blade script request
-    */
-    function isBladeScriptRequest(id: string) {
-        return id.includes('?bond');
-    }
-    
-    /**
-    * Setup file watcher for blade files
-    */
-    function setupWatcher() {
-        function handleFileChange(filePath: string) {
-            if (server) {                
-                // Find and invalidate the corresponding virtual .ts?bond module
-                const cleanPath = filePath.replace(/\.blade\.php$/, '');
-                const virtualScriptPath = `${cleanPath}.ts?bond`;
-                const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
-
-                if (scriptModule) {
-                    server.reloadModule(scriptModule);
-                }
-            }
-        }
-        
-        server.watcher.on('change', handleFileChange)    
-        server.watcher.on('add', handleFileChange)    
-        server.watcher.on('unlink', handleFileChange)
-    }
-    
+  
     return {
         name: 'vite-bond-plugin',
         
         configureServer(devServer) {
             server = devServer;
-            
-            setupWatcher()
-        },
-        
-        buildStart() {
-            // During build, automatically discover and add blade files to the build
-            const bladeFiles = findBladeFiles(resolve(defaultViewsPath));
-            
-            for (const filePath of bladeFiles) {
-                try {
-                    const content = readFileSync(filePath, 'utf-8');
-                    const script = extractScriptSetup(content);
-                    
-                    if (script) {
-                        this.addWatchFile(filePath);
-                    }
-                } catch (error) {
-                    console.warn(`[bond] Error processing ${filePath}:`, error.message);
-                }
+
+            const handleFileChange = function (path: string) {
+                
             }
+
+            server.watcher.on('add', (path) => {
+                
+            })
+
+            server.watcher.on('unlink', (path) => {
+                const root = process.cwd()
+
+                if (path.startsWith(resolve(root, viewsPrefix))) {
+                    const importPath = path.substring(root.length + 1).replace('.blade.php', '.ts?bond');
+                    const scriptModule = server.moduleGraph.getModuleById(importPath);
+
+                    if (scriptModule) {
+                        server.reloadModule(scriptModule)
+                    }   
+                }
+            })
+
+            server.watcher.on('change', (path) => {
+                const root = process.cwd()
+
+                if (path.startsWith(resolve(root, viewsPrefix))) {
+                    const importPath = path.substring(root.length + 1).replace('.blade.php', '.ts?bond');
+                    const scriptModule = server.moduleGraph.getModuleById(importPath);
+
+                    if (scriptModule) {
+                        server.reloadModule(scriptModule);
+                    }   
+                }
+            })
         },
         
         resolveId(id) {
-            // Handle the main virtual module
             if (id.startsWith(virtualModuleId)) {
                 return '\0' + id;
             }
-            
-            // Handle bond module alias
-            if (id === 'bond') {
-                return resolve(process.cwd(), 'vendor/ganyicz/bond/dist/mount.js');
+
+            if (id.endsWith('.ts?bond')) {
+                return id
             }
-            
-            // Handle blade script requests similar to Vue's approach
-            if (isBladeScriptRequest(id)) {
-                return id; // Return as-is, we'll handle it in load
-            }
-            return null;
         },
         
         load(id) {
-            // Handle the main virtual module that imports all blade scripts
             if (id.startsWith(resolvedVirtualModuleId)) {
-                const bladeFiles = findBladeFiles(resolve(id.slice(resolvedVirtualModuleId.length + 1) || defaultViewsPath));
-                const imports: string[] = [];
-                
-                for (const filePath of bladeFiles) {
-                    try {
-                        const content = readFileSync(filePath, 'utf-8');
-                        const script = extractScriptSetup(content);
-                        
-                        if (script) {
-                            // Create a .ts virtual file so Vite handles TypeScript transformation
-                            // Remove .blade.php and add .ts extension
-                            const cleanPath = filePath.replace(/\.blade\.php$/, '');
-                            const virtualPath = `${cleanPath}.ts?bond`;
-                            imports.push(`import '${virtualPath}';`);
-                        }
-                    } catch (error) {
-                        console.warn(`[bond] Error processing ${filePath}:`, error.message);
-                    }
+                const path = id.slice(resolvedVirtualModuleId.length + 1) || defaultViewsPath
+                const filePaths = findBladeFilePaths(path)
+
+                let imports: string[] = []
+
+                for (const filePath of filePaths) {
+                    const content = fs.readFileSync(filePath, 'utf-8')
+                    if (! hasScriptSetup(content)) continue
+
+                    const importPath = filePath.replace('.blade.php', '.ts?bond')
+
+                    imports.push(`import '${importPath}'`)
                 }
-                
-                const moduleContent = imports.length > 0 
-                ? imports.join('\n') 
-                : '// No blade script setup blocks found';
-                
-                return moduleContent;
+
+                return imports.join('\n')
             }
-            
-            // Handle blade script requests
-            if (isBladeScriptRequest(id)) {
-                const { filename } = parseBladeRequest(id);
+
+            if (id.endsWith('.ts?bond')) {
+                const filePath = id.replace('\0', '').substring(0, id.lastIndexOf('/'))
+                const fileName = id.substring(id.lastIndexOf('/') + 1).replace('.ts?bond', '.blade.php')
+                const fullPath = join(filePath, fileName)
+
+                const code = fs.readFileSync(fullPath, 'utf-8')
+                const script = extractScriptSetupContent(code)
+                const mount = extractMountFunction(code)
+                if (!script || ! mount) return null
+
+                const ms = new MagicString(code)
                 
-                try {
-                    // Remove the .ts extension and add back .blade.php to get the actual file
-                    const actualFilename = filename.replace(/\.ts$/, '.blade.php');
-                    
-                    const content = readFileSync(actualFilename, 'utf-8');
-                    const script = extractScriptSetup(content);
-                    
-                    if (script) {
-                        // Transform mount() calls before returning
-                        const transformedScript = transformMountCalls(script, actualFilename);
-                        return transformedScript;
-                    } else {
-                        console.warn(`[bond] No script setup found in ${actualFilename}`);
-                        return 'export {};'; // Empty module
-                    }
-                } catch (error) {
-                    console.error(`[bond] Error loading blade script ${filename}:`, error.message);
-                    return 'export {};'; // Empty module fallback
+                // Extract script & add import
+                ms.remove(0, script.start)
+                ms.remove(script.end, code.length)
+                ms.prepend(`import { mount } from '@bond/alpine-plugin'\n`)
+
+                const componentName = fullPath.replace(viewsPrefix + '/', '').replace('.blade.php', '').replaceAll('/', '.')
+                const props = getProps(mount.content)
+                ms.replace(/mount\(/, `mount('${componentName}', ${JSON.stringify(props)}, `)
+
+                return {
+                    code: ms.toString(),
+                    map: ms.generateMap({
+                        source: fileName,
+                        includeContent: false,
+                    })
                 }
             }
-            
-            return null;
-        },
-        
-        transform(_, id) {
-            // Transform main blade files to import their script setup content
-            if (id.endsWith('.blade.php') && !isBladeScriptRequest(id)) {
-                try {
-                    const content = readFileSync(id, 'utf-8');
-                    const script = extractScriptSetup(content);
-                    
-                    if (script) {
-                        // Generate import for the script setup block
-                        const importStatement = `import '${id}.ts?bond';`;
-                        
-                        // Return the import as the module content
-                        return {
-                            code: importStatement,
-                            map: null
-                        };
-                    }
-                } catch (error) {
-                    console.warn(`[bond] Error transforming blade file ${id}:`, error.message);
-                }
-            }
-            
-            return null;
         },
     };
+}
+
+function findBladeFilePaths(dir: string): string[] {
+    if (!fs.existsSync(dir)) {
+        return [];
+    }
+    
+    const files = fs.readdirSync(dir, { withFileTypes: true });
+
+    let results: string[] = [];
+
+    for (const file of files) {
+        const filePath = join(dir, file.name)
+        
+        if (file.isDirectory()) {
+            results = results.concat(findBladeFilePaths(filePath))
+        } else {
+            if (file.name.endsWith('.blade.php')) {
+                results.push(filePath)
+            }
+        }
+    }
+
+    return results
+}
+
+function getProps(code: string): string[] {
+    const sourceFile = ts.createSourceFile('temp.ts', code, ts.ScriptTarget.ESNext, true);
+    const expression = sourceFile.statements[0].getChildAt(0)
+    if (! isMountCall(expression)) return []
+
+    const callback = expression.arguments[0]
+    if (! ts.isArrowFunction(callback)) return []
+    
+    const firstParameterType = callback.parameters[0].type
+
+    if (firstParameterType && ts.isTypeLiteralNode(firstParameterType)) {
+        const props: string[] = [];
+                
+        for (const member of firstParameterType.members) {
+            if (ts.isPropertySignature(member) && member.name) {
+                if (ts.isIdentifier(member.name)) {
+                    props.push(member.name.text);
+                }
+            }
+        }
+
+        return props
+    }
+
+    return []
+}
+
+function isMountCall(node: ts.Node): node is ts.CallExpression {
+    return ts.isCallExpression(node) && 
+        ts.isIdentifier(node.expression) && 
+        node.expression.text === 'mount'
 }

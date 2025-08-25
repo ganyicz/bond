@@ -1,4 +1,4 @@
-import * as html from 'vscode-html-languageservice';
+import * as htmlparser2 from 'htmlparser2';
 
 export interface ExtractedSourceCode {
     content: string;
@@ -14,7 +14,9 @@ interface ExtractedAttribute {
     nodeRange: [number, number]
 }
 
-const htmlLs = html.getLanguageService();
+export function hasScriptSetup(code: string): boolean {
+    return /<script\s+setup\b[^>]*>/.test(code);
+}
 
 export function extractScriptSetupContent(code: string): ExtractedSourceCode | null {
     const scriptSetupRegex = /<script\s+setup\b[^>]*>\n*([\s\S]*?)\n*<\/script>/;
@@ -105,216 +107,59 @@ export function extractPreMount(code: string): ExtractedSourceCode | undefined {
 }
 
 export function extractAttributes(code: string): ExtractedAttribute[] {
-    const document = htmlLs.parseHTMLDocument(html.TextDocument.create('', 'html', 0, code));
-    const roots = document.roots
-    const attributes: ExtractedAttribute[] = []
+    const attributes: ExtractedAttribute[] = [];
     
-    function walkNode(node: html.Node, depth: number = 1) {
-        const startTag = code.substring(node.start, node.startTagEnd)
-        const scanner = htmlLs.createScanner(startTag)
-
-        let attributeName;
-
-        while (scanner.scan() !== html.TokenType.EOS) {
-            const tokenType = scanner.getTokenType()
-
-            if (tokenType === html.TokenType.AttributeName) {
-                attributeName = scanner.getTokenText()
-
-                if (!attributeName.startsWith('x-')) continue
-            }
-
-            if (attributeName && tokenType === html.TokenType.AttributeValue) {
-                const text = scanner.getTokenText()
-                if (!text) continue
-
-                const trimmed = text.replace(/^(['"])([\s\S]*)\1$/, '$2');
-                if (trimmed.length == text.length) continue
-
-                const start = node.start + scanner.getTokenOffset() + 1
-                const end = start + trimmed.length
-
-                attributes.push({
-                    name: attributeName,
-                    depth,
-                    code: {
-                        content: trimmed,
-                        length: trimmed.length,
-                        start,
-                        end,
-                    },
-                    nodeRange: [node.start, node.end],
-                })
+    const dom = htmlparser2.parseDocument(code, {
+        withStartIndices: true,
+        withEndIndices: true,
+    });
+    
+    function walkNode(node: any, depth: number = 1) {
+        if (node.type === 'tag' && node.attribs) {
+            for (const [attrName] of Object.entries(node.attribs)) {
+                if (!attrName.startsWith('x-')) continue;
+                
+                const nodeStart = node.startIndex ?? 0;
+                const nodeEnd = (node.endIndex ?? code.length - 1) + 1; // Convert from inclusive to exclusive
+                const tagSource = code.substring(nodeStart, nodeEnd);
+                
+                const escapedAttrName = attrName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const attrPattern = new RegExp(`${escapedAttrName}\\s*=\\s*(['"])((?:\\\\.|(?!\\1)[^\\\\])*)\\1`);
+                const match = attrPattern.exec(tagSource);
+                
+                if (match) {
+                    const valueContent = match[2];
+                    const attrStart = nodeStart + match.index + match[0].indexOf(valueContent);
+                    const attrEnd = attrStart + valueContent.length;
+                    
+                    attributes.push({
+                        name: attrName,
+                        depth,
+                        code: {
+                            content: valueContent,
+                            start: attrStart,
+                            end: attrEnd,
+                            length: valueContent.length,
+                        },
+                        nodeRange: [nodeStart, nodeEnd],
+                    });
+                }
             }
         }
-
-        for (const child of node.children) {
-            walkNode(child, depth + 1)
+        
+        if (node.children) {
+            for (const child of node.children) {
+                walkNode(child, depth + 1);
+            }
         }
     }
-
-    for (const root of roots) { 
-        walkNode(root)
-    }
-
-    return attributes
-}
-
-export function extractAttributeExpressions(code: string): ExtractedSourceCode[] {
-    let cleanedCode = code;
     
-    cleanedCode = cleanedCode.replace(/{{--[\s\S]*?--}}/g, '');
-    cleanedCode = cleanedCode.replace(/<!--[\s\S]*?-->/g, '');
-    cleanedCode = cleanedCode.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
-    cleanedCode = cleanedCode.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
-    cleanedCode = cleanedCode.replace(/<\?php[\s\S]*?\?>/g, '');
-    
-    const expressions = extractExpressions(cleanedCode, code);
-    
-    expressions.sort((a, b) => a.start - b.start);
-    
-    return expressions;
-}
-
-export function extractJSXAttributeExpressions(code: string): ExtractedSourceCode[] {
-    let cleanedCode = code;
-    
-    cleanedCode = cleanedCode.replace(/{{--[\s\S]*?--}}/g, '');
-    cleanedCode = cleanedCode.replace(/{{[\s\S]*?}}/g, '');
-    cleanedCode = cleanedCode.replace(/<!--[\s\S]*?-->/g, '');
-    cleanedCode = cleanedCode.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
-    cleanedCode = cleanedCode.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
-    cleanedCode = cleanedCode.replace(/<\?php[\s\S]*?\?>/g, '');
-    
-    const expressions = extractJSXExpressions(cleanedCode, code);
-    const expressionObjects = extractJSXExpressionObjects(cleanedCode, code);
-    
-    const allResults = [
-        ...expressions,
-        ...expressionObjects,
-    ];
-    allResults.sort((a, b) => a.start - b.start);
-    
-    return allResults;
-}
-
-function buildAttributeExpressionRegex(useObjectSyntax: boolean): RegExp {
-    const tagPattern = '<[\\w\\-:.]+[^>]*\\s+[\\w\\-:.@%]*=\\s*';
-    const contentWithBraces = '([^{}]*(?:\\{[^{}]*\\}[^{}]*)*)';
-    const endPattern = '[^>]*>';
-    
-    const expression = useObjectSyntax 
-    ? `\\(\\{${contentWithBraces}\\}\\)` // ({content})
-    : `\\{${contentWithBraces}\\}`;      // {content}
-    
-    return new RegExp(`${tagPattern}(${expression})${endPattern}`, 'g');
-}
-
-export function extractExpressions(cleanedCode: string, originalCode: string): ExtractedSourceCode[] {
-    const results: ExtractedSourceCode[] = [];
-    
-    // Match x- attributes with both single and double quoted values, including multiline
-    const regex = /<[\w\-:.]+[^>]*\s+(x-[\w\-:.@%]*)\s*=\s*(['"])([\s\S]*?)\2[^>]*>/g;
-    
-    let match;
-    let searchOffset = 0;
-    
-    while ((match = regex.exec(cleanedCode)) !== null) {
-        const fullMatch = match[0]; // entire tag match
-        const quoteChar = match[2]; // ' or "
-        const innerContent = match[3]; // content inside quotes
-        
-        // Find the position of this match in original code
-        const originalStart = originalCode.indexOf(fullMatch, searchOffset);
-        
-        // Find the quoted value in the original code  
-        const quotedValue = `${quoteChar}${match[3]}${quoteChar}`;
-        const quotedStart = originalCode.indexOf(quotedValue, originalStart);
-        const contentStart = quotedStart + 1; // +1 to skip opening quote
-        const contentEnd = contentStart + innerContent.length;
-        
-        // For most content, trim it. But for the specific case where content contains
-        // only whitespace-padded simple expressions, keep the spaces
-        let finalContent = innerContent.trim();
-        let actualStart = contentStart;
-        let actualEnd = contentEnd;
-        
-        // Special case: if content is just spaces around a simple expression, 
-        // keep the original with spaces
-        if (innerContent !== innerContent.trim() && 
-            innerContent.trim().length < 20 && 
-            !innerContent.includes('\n')) {
-            // This is likely a simple padded expression like " value++ "
-            finalContent = innerContent;
-        } else if (finalContent !== innerContent) {
-            // Find the trimmed content position within the original content
-            const trimStart = innerContent.indexOf(finalContent);
-            actualStart = contentStart + trimStart;
-            actualEnd = actualStart + finalContent.length;
+    // Walk through all root nodes
+    if (dom.children) {
+        for (const root of dom.children) {
+            walkNode(root);
         }
-        
-        results.push({
-            content: finalContent,
-            start: actualStart,
-            end: actualEnd,
-            length: finalContent.length
-        });
-        
-        searchOffset = originalStart + fullMatch.length;
     }
     
-    return results;
-}
-
-export function extractJSXExpressions(cleanedCode: string, originalCode: string): ExtractedSourceCode[] {
-    const results: ExtractedSourceCode[] = [];
-    const regex = buildAttributeExpressionRegex(false); // {expression} patterns
-    
-    let match;
-    let searchOffset = 0;
-    
-    while ((match = regex.exec(cleanedCode)) !== null) {
-        const fullMatch = match[1]; // {...}
-        const innerContent = match[2]; // content
-        
-        const originalStart = originalCode.indexOf(fullMatch, searchOffset);
-        const trimmedInner = innerContent.trim();
-        const trimmedStart = originalCode.indexOf(trimmedInner, originalStart + 1);
-        
-        results.push({
-            content: trimmedInner,
-            start: trimmedStart,
-            end: trimmedStart + trimmedInner.length,
-            length: trimmedInner.length
-        });
-        
-        searchOffset = originalStart + fullMatch.length;
-    }
-    
-    return results;
-}
-
-export function extractJSXExpressionObjects(cleanedCode: string, originalCode: string): ExtractedSourceCode[] {
-    const results: ExtractedSourceCode[] = [];
-    const regex = buildAttributeExpressionRegex(true); // ({object}) patterns
-    
-    let match;
-    let searchOffset = 0;
-    
-    while ((match = regex.exec(cleanedCode)) !== null) {
-        const fullMatch = match[1]; // ({...})
-        
-        const originalStart = originalCode.indexOf(fullMatch, searchOffset);
-        
-        results.push({
-            content: fullMatch,
-            start: originalStart,
-            end: originalStart + fullMatch.length,
-            length: fullMatch.length
-        });
-        
-        searchOffset = originalStart + fullMatch.length;
-    }
-    
-    return results;
+    return attributes;
 }

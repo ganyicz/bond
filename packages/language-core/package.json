@@ -17,7 +17,7 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "vscode-html-languageservice": "^5.2.0"
+        "htmlparser2": "^10.0.0"
     },
     "devDependencies": {
         "esbuild": "^0.23.0",

@@ -1,15 +1,6 @@
 export default function Bond(Alpine) {
     Alpine.components = {}
 
-    Alpine.bond = function(components) {
-        for (const component of components) {
-            Alpine.components[component.name] = {
-                props: component.props,
-                callback: component.callbacks
-            }
-        }
-    }
-
     Alpine.component = function(component, props, callback) {
         Alpine.components[component] = {props, callback}
     }
@@ -155,4 +146,10 @@ function initProps(Alpine, el, props, ctx) {
             JSON.stringify(value)
         })
     }
+}
+
+export function mount(component, props, callback) {
+    document.addEventListener('alpine:init', () => {
+        window.Alpine.component(component, props, callback)
+    })
 }

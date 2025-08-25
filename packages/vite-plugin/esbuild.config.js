@@ -10,7 +10,6 @@ const options = {
     external: [
         'vite',
         'typescript',
-        'chokidar',
         'fs'
     ]
 }
