@@ -163,24 +163,43 @@ function initProps(Alpine, el, props, ctx) {
     }
 
     Alpine.setErrorHandler((error, el, expression = undefined) => {
-        error = Object.assign( 
-            error ?? { message: 'No error message given.' }, 
-            { el, expression } )
-
         const match = expression.match(/^(.*?)\/\*(bond:[^*]+)\*\//)
         const bondExpression = getBondExpression(match[2])
 
         if (bondExpression) {
             const debug = bondExpression.debug
             const underline = ' '.repeat(debug.start) + '^'.repeat(bondExpression.value.length)
-            const location = `%c${debug.node}\n${underline}%c\nat ${debug.file}:${debug.line}`
+            const excerpt = `${debug.node}\n${underline}`
+            const location = `at ${debug.file}:${debug.line}`
 
-            console.warn(
-                `Alpine Expression Error:\n\n${error.message}\n\n${location}`,
-                'font-family: monospace; white-space: pre; font-variant-ligatures: none',
-                '',
-            )
+            const tsFileMatch = error.stack.match(/(resources\/views.*\.ts.*)\n/)
+            if (tsFileMatch) {
+                const clone = structuredClone(error)
+                clone.stack = error.stack.substring(0, tsFileMatch.index + tsFileMatch[1].length).replace('Proxy.', '')
+
+                console.warn(
+                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}\n\nCause:`,
+                    'font-family: monospace; white-space: pre; font-variant-ligatures: none',
+                    '',
+                    clone
+                )
+            } else {
+                const clone = structuredClone(error)
+                clone.stack = ''
+
+                console.warn(
+                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}\n\nCause:`,
+                    'font-family: monospace; white-space: pre; font-variant-ligatures: none',
+                    '',
+                    clone
+                )   
+            }
         } else {
+            error = Object.assign( 
+                error ?? { message: 'No error message given.' }, 
+                { el, expression }
+            )
+            
             console.warn(`Alpine Expression Error: ${error.message}\n\n${ expression ? 'Expression: \"' + match[1] + '\"\n\n' : '' }`, el)
         }
         
