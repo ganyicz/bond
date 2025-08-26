@@ -123,6 +123,7 @@ export function extractAttributes(code: string): ExtractedAttribute[] {
             
             for (const attr of node.attrs) {
                 if (!attr.name.startsWith('x-')) continue;
+                if (!attr.value) continue;
                 
                 const attrLoc = nodeLoc.attrs[attr.name];
                 

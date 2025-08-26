@@ -166,6 +166,14 @@ test('extracts HTML attributes from inside template', () => {
     ])
 })
 
+test('doesnt extract empty HTML attributes', () => {
+    const attributes = extractAttributes(
+`<div x-slot></div>`
+    )
+
+    expect(attributes).toEqual([])
+})
+
 
 test('extracts HTML attributes with blade', {skip: true}, () => {
     const attributes = extractAttributes(

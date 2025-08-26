@@ -7887,6 +7887,7 @@ function extractAttributes(code) {
       const tagLoc = nodeLoc.startTag;
       for (const attr of node.attrs) {
         if (!attr.name.startsWith("x-")) continue;
+        if (!attr.value) continue;
         const attrLoc = nodeLoc.attrs[attr.name];
         let valueStartOffset = attrLoc.startOffset + attr.name.length;
         valueStartOffset += code.substring(valueStartOffset, attrLoc.endOffset).indexOf(attr.value);
@@ -9062,7 +9063,7 @@ function bond(options = {}) {
           name: attr.name,
           value: attr.code.content,
           debug: {
-            node: code.substring(...attr.startTagRange),
+            node: stripIndentation(code.substring(...attr.startTagRange)),
             start: attr.code.start - attr.startTagRange[0],
             file: fullPath,
             line: attr.line
@@ -9124,6 +9125,14 @@ function getProps(code) {
 }
 function isMountCall(node) {
   return ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "mount";
+}
+function stripIndentation(code) {
+  const trailingLines = code.substring(code.indexOf("\n"));
+  const whitespace = trailingLines.match(/^[ \t]*(?=\S)/gm);
+  const minIndent = whitespace?.reduce((r, a) => Math.min(r, a.length), Infinity);
+  if (!minIndent) return code;
+  const regex = new RegExp(`^[ \\t]{${minIndent}}`, "gm");
+  return code.replace(regex, "");
 }
 export {
   bond as default
