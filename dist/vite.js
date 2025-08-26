@@ -3852,7 +3852,7 @@ function getProps(code) {
   if (!isMountCall(expression)) return [];
   const callback = expression.arguments[0];
   if (!ts.isArrowFunction(callback)) return [];
-  const firstParameterType = callback.parameters[0].type;
+  const firstParameterType = callback.parameters[0]?.type;
   if (firstParameterType && ts.isTypeLiteralNode(firstParameterType)) {
     const props = [];
     for (const member of firstParameterType.members) {

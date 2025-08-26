@@ -169,7 +169,7 @@ function getProps(code: string): string[] {
     const callback = expression.arguments[0]
     if (! ts.isArrowFunction(callback)) return []
     
-    const firstParameterType = callback.parameters[0].type
+    const firstParameterType = callback.parameters[0]?.type
 
     if (firstParameterType && ts.isTypeLiteralNode(firstParameterType)) {
         const props: string[] = [];
