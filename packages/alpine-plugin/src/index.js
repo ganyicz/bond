@@ -10,6 +10,41 @@ export default function Bond(Alpine) {
         Alpine.expressions[component] = expressions
     }
 
+    Alpine.interceptInit(el => {
+        const expAttributes = Array.from(el.attributes)
+            .filter(i => i.name.startsWith(Alpine.prefixed('exp')))
+
+        for (const attr of expAttributes) {
+            const expression = attr.value
+            const modifiers = attr.name.split('.').slice(1)
+
+            const component = expression.split(':')[0]
+            const index = parseInt(modifiers[0])
+            const prop = modifiers[1] == 'prop'
+            const exp = Alpine.expressions[component][index]
+            const expAttr = prop ? 'x-prop:' + exp.name.substr(2) : exp.name
+            const expValue = exp.name !== 'x-ref' ? `${exp.value}/*bond:${expression}*/` : exp.value
+
+            Alpine.mutateDom(() => {
+                el.setAttribute(expAttr, expValue)
+                el.removeAttribute(`${Alpine.prefixed('exp')}.${modifiers.join('.')}`)
+            })
+        }
+    })
+
+    Alpine.directive('prop', (el, { value, expression }, { effect }) => {
+        const data = el._x_dataStack[0]
+
+        data.props ??= {}
+
+        const target = el.parentNode
+        const extra = el._x_refreshXForScope ? el._x_dataStack[1] : {}
+
+        const evaluate = Alpine.evaluateLater(target, expression)
+
+        effect(() => evaluate(i => data.props[value] = i, { scope: extra }))
+    }).before('bind')
+
     Alpine.directive('slot', (el, { expression }, { evaluate }) => {
         const parent = Alpine.findClosest(el, element => element._x_bond)
         const scope = Alpine.closestRoot(parent.parentNode)
@@ -17,45 +52,24 @@ export default function Bond(Alpine) {
         if (scope) {
             el._x_dataStack = scope._x_dataStack
         }
-    }).before('init')
+    }).before('bind')
 
     Alpine.directive('component', (el, { expression }, { evaluate }) => {
         const name = expression
-        const context = el._x_dataStack[0]
         const component = Alpine.components[name]
+        
+        const ctx = el._x_dataStack[0]
+        const data = component.callback?.apply(ctx, [ctx.props]) || {}
 
-        if (component.props) {
-            initProps(Alpine, el, component.props, el._x_refreshXForScope ? el._x_dataStack[1] : {})
-        }
+        Object.defineProperties(ctx, Object.getOwnPropertyDescriptors(data))
 
-        const data = component.callback
-            ? component.callback.apply(context, [el._x_props])
-            : {}
-
-        Object.defineProperties(context, Object.getOwnPropertyDescriptors(data))
-
-        context.props = el._x_props
-
-        el._x_dataStack = el._x_dataStack.slice(0, 1)
+        el._x_dataStack = [ctx]
         el._x_bond = true
 
         data['init'] && evaluate(data['init'])
-    }).before('init')
+    }).before('bind')
 
-    Alpine.directive('exp', (el, {value, modifiers, expression}) => {
-        const component = expression.split(':')[0]
-        const index = parseInt(modifiers[0])
-        const exp = Alpine.expressions[component][index]
-        const expValue = exp.name !== 'x-ref' ? `${exp.value}/*bond:${expression}*/` : exp.value
-
-        Alpine.bind(el, {[exp.name]: expValue})
-
-        Alpine.mutateDom(() => {
-            el.setAttribute(exp.name, modifiers[1] == 'prop' ? expValue : exp.value)
-            el.removeAttribute(`${Alpine.prefixed('exp')}.${modifiers.join('.')}`)
-        })
-    }).before('ignore')
-
+    // [x-else] support
     Alpine.directive('if', (el, { expression }, { effect, cleanup }) => {
         if (el.tagName.toLowerCase() !== 'template') warn('x-if can only be used on a <template> tag', el)
 
@@ -129,42 +143,6 @@ export default function Bond(Alpine) {
             el._x_undoIf && el._x_undoIf()
         })
     }).before('if')
-}
-
-function initProps(Alpine, el, props, ctx) {
-    el._x_props = Alpine.reactive({})
-
-    for (const prop of props) {
-        const attribute = Alpine.prefixed(prop)
-
-        if (! el.hasAttribute(attribute)) {
-            el._x_props[prop] = null;
-
-            continue;
-        }
-
-        const expression = el.getAttribute(attribute) || prop
-
-        const evaluate = Alpine.evaluateLater(el.parentNode, expression);
-
-        const getter = () => {
-            let value;
-            
-            Alpine.dontAutoEvaluateFunctions(() => {
-                evaluate(i => value = i, {scope: ctx})
-            })
-
-            return value
-        }
-
-        Alpine.effect(() => {
-            const value = getter()
-            
-            el._x_props[prop] = value
-
-            JSON.stringify(value)
-        })
-    }
 
     Alpine.setErrorHandler((error, el, expression = undefined) => {
         const expressionMatch = expression?.match(/([\s\S]*?)\/\*(bond:[^*]+)\*\/\s*$/);
