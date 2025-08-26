@@ -151,7 +151,7 @@ export default function Bond(Alpine) {
         if (bondExpression) {
             const debug = bondExpression.debug
             const underline = ' '.repeat(debug.start) + '^'.repeat(bondExpression.value.length)
-            const excerpt = `${debug.node}\n${underline}`
+            const excerpt = debug.node.indexOf('\n') === -1 ? `${debug.node}\n${underline}` : debug.node + '\n'
             const location = `at ${debug.file}:${debug.line}`
 
             const tsFileMatch = error.stack.match(/(resources\/views.*\.ts.*)\n/)
@@ -160,14 +160,14 @@ export default function Bond(Alpine) {
                 errorClone.stack = error.stack.substring(0, tsFileMatch.index + tsFileMatch[1].length).replace('Proxy.', '')
 
                 console.warn(
-                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}\n\nCause:`,
+                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}\n\nDirective: "${bondExpression.name}"\n\nCause:`,
                     'font-family: monospace; white-space: pre; font-variant-ligatures: none',
                     '',
                     errorClone
                 )
             } else {
                 console.warn(
-                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}\n\nCause:`,
+                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}\n\nDirective: "${bondExpression.name}"\n\nCause:`,
                     'font-family: monospace; white-space: pre; font-variant-ligatures: none',
                     '',
                     error

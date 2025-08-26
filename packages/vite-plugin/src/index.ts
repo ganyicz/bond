@@ -116,7 +116,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
                         name: attr.name,
                         value: attr.code.content,
                         debug: {
-                            node: code.substring(...attr.startTagRange),
+                            node: stripIndentation(code.substring(...attr.startTagRange)),
                             start: attr.code.start - attr.startTagRange[0],
                             file: fullPath,
                             line: attr.line,
@@ -192,4 +192,16 @@ function isMountCall(node: ts.Node): node is ts.CallExpression {
     return ts.isCallExpression(node) && 
         ts.isIdentifier(node.expression) && 
         node.expression.text === 'mount'
+}
+
+function stripIndentation(code: string): string
+{
+    const trailingLines = code.substring(code.indexOf('\n'))
+    const whitespace = trailingLines.match(/^[ \t]*(?=\S)/gm);
+	const minIndent = whitespace?.reduce((r, a) => Math.min(r, a.length), Infinity)
+    if (!minIndent) return code
+
+    const regex = new RegExp(`^[ \\t]{${minIndent}}`, 'gm')
+
+    return code.replace(regex, '')
 }
