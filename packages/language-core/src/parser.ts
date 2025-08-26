@@ -1,4 +1,4 @@
-import * as htmlparser2 from 'htmlparser2';
+import * as parse5 from 'parse5';
 
 export interface ExtractedSourceCode {
     content: string;
@@ -7,12 +7,13 @@ export interface ExtractedSourceCode {
     length: number;
 }
 
-interface ExtractedAttribute {
+export interface ExtractedAttribute {
     name: string,
     depth: number,
     line: number,
     code: ExtractedSourceCode,
-    nodeRange: [number, number]
+    nodeRange: [number, number],
+    startTagRange: [number, number],
 }
 
 export function hasScriptSetup(code: string): boolean {
@@ -110,75 +111,51 @@ export function extractPreMount(code: string): ExtractedSourceCode | undefined {
 export function extractAttributes(code: string): ExtractedAttribute[] {
     const attributes: ExtractedAttribute[] = [];
     
-    const dom = htmlparser2.parseDocument(code, {
-        withStartIndices: true,
-        withEndIndices: true,
+    // Parse with location info - use parseFragment for HTML snippets
+    const html = parse5.parseFragment(code, { 
+        sourceCodeLocationInfo: true 
     });
 
-    let lines = [0];
-    let currentLine = 0
-    
-    for (let i = 0; i < code.length; i++) {
-        if (code[i] === '\n') {
-            lines.push(i + 1);
-        }
-    }
-    
     function walkNode(node: any, depth: number = 1) {
-        if (node.type === 'tag' && node.attribs) {
-            for (const [attrName] of Object.entries(node.attribs)) {
-                if (!attrName.startsWith('x-')) continue;
+        if (node.nodeName && node.nodeName !== '#text' && node.attrs) {
+            const nodeLoc = node.sourceCodeLocation;
+            const tagLoc = nodeLoc.startTag
+            
+            for (const attr of node.attrs) {
+                if (!attr.name.startsWith('x-')) continue;
                 
-                const nodeStart = node.startIndex ?? 0;
-                const nodeEnd = (node.endIndex ?? code.length - 1) + 1; // Convert from inclusive to exclusive
-                const tagSource = code.substring(nodeStart, nodeEnd);
+                const attrLoc = nodeLoc.attrs[attr.name];
                 
-                const escapedAttrName = attrName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const attrPattern = new RegExp(`${escapedAttrName}\\s*=\\s*(['"])((?:\\\\.|(?!\\1)[^\\\\])*)\\1`);
-                const match = attrPattern.exec(tagSource);
+                let valueStartOffset = attrLoc.startOffset + attr.name.length
+                valueStartOffset += code.substring(valueStartOffset, attrLoc.endOffset).indexOf(attr.value);
+                if (valueStartOffset == -1) continue
                 
-                if (match) {
-                    const valueContent = match[2];
-                    const attrStart = nodeStart + match.index + match[0].indexOf(valueContent);
-                    const attrEnd = attrStart + valueContent.length;
-
-                    for (let i = currentLine; i < lines.length; i++) {
-                        if (lines[i] <= attrStart) {
-                            currentLine++;
-                        } else {
-                            break;
-                        }
-                    }
-                    
-                    attributes.push({
-                        name: attrName,
-                        depth,
-                        line: currentLine,
-                        code: {
-                            content: valueContent,
-                            start: attrStart,
-                            end: attrEnd,
-                            length: valueContent.length,
-                        },
-                        nodeRange: [nodeStart, nodeEnd],
-                    });
-                }
+                attributes.push({
+                    name: attr.name,
+                    depth,
+                    line: attrLoc.startLine,
+                    code: {
+                        content: attr.value,
+                        start: valueStartOffset,
+                        end: valueStartOffset + attr.value.length,
+                        length: attr.value.length,
+                    },
+                    nodeRange: [nodeLoc.startOffset, nodeLoc.endOffset],
+                    startTagRange: [tagLoc.startOffset, tagLoc.endOffset],
+                });
             }
         }
-        
-        if (node.children) {
-            for (const child of node.children) {
+
+        const children = node.content ? node.content.childNodes : node.childNodes
+
+        if (children) {
+            for (const child of children) {
                 walkNode(child, depth + 1);
             }
         }
     }
     
-    // Walk through all root nodes
-    if (dom.children) {
-        for (const root of dom.children) {
-            walkNode(root);
-        }
-    }
+    walkNode(html, 0);
     
     return attributes;
 }

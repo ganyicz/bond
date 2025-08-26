@@ -108,6 +108,7 @@ test('extracts HTML attributes', () => {
             },
             line: 1,
             nodeRange: [0,134],
+            startTagRange: [0,32],
         },
         {
             depth: 2,
@@ -120,6 +121,7 @@ test('extracts HTML attributes', () => {
             },
             line: 2,
             nodeRange: [37,127],
+            startTagRange: [37,116],
         },
         {
             depth: 2,
@@ -135,9 +137,35 @@ test('extracts HTML attributes', () => {
             },
             line: 2,
             nodeRange: [37,127],
+            startTagRange: [37,116],
         }
     ])
 })
+
+test('extracts HTML attributes from inside template', () => {
+    const attributes = extractAttributes(
+`<template>
+    <div x-on:click="value++"></div>
+</template>`
+    )
+
+    expect(attributes).toEqual([
+        {
+            depth: 2,
+            name: 'x-on:click',
+            code: {
+                content: 'value++',
+                start: 32,
+                end: 39,
+                length: 7,
+            },
+            line: 2,
+            nodeRange: [15,47],
+            startTagRange: [15,41],
+        },
+    ])
+})
+
 
 test('extracts HTML attributes with blade', {skip: true}, () => {
     const attributes = extractAttributes(
@@ -159,6 +187,7 @@ test('extracts HTML attributes with blade', {skip: true}, () => {
             },
             line: 3,
             nodeRange: [0,59],
+            startTagRange: [0,52],
         },
     ])
 })

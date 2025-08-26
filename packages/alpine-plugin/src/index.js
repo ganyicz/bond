@@ -167,9 +167,10 @@ export default function Bond(Alpine) {
                 )
             } else {
                 console.warn(
-                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}`,
+                    `Bond Expression Error:\n\n%c${excerpt}%c\n${location}\n\nCause:`,
                     'font-family: monospace; white-space: pre; font-variant-ligatures: none',
                     '',
+                    error
                 )   
             }
         } else {

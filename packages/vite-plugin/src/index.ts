@@ -116,8 +116,8 @@ export default function bond(options: PluginConfig = {}): Plugin {
                         name: attr.name,
                         value: attr.code.content,
                         debug: {
-                            node: code.substring(...attr.nodeRange),
-                            start: attr.code.start - attr.nodeRange[0],
+                            node: code.substring(...attr.startTagRange),
+                            start: attr.code.start - attr.startTagRange[0],
                             file: fullPath,
                             line: attr.line,
                         }
