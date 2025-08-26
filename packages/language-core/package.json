@@ -14,7 +14,7 @@
     "scripts": {
         "build": "esbuild src/index.ts --bundle --format=esm --outfile=dist/index.js --sourcemap && tsc --emitDeclarationOnly --outDir dist",
         "dev": "npm run build -- --watch",
-        "test": "vitest run"
+        "test": "vitest"
     },
     "dependencies": {
         "parse5": "^8.0.0"
