@@ -40,8 +40,9 @@ class BondServiceProvider extends ServiceProvider
                         @php
                         \$attributes = new \Illuminate\View\ComponentAttributeBag(
                             collect(\$attributes)
-                                ->merge(['x-data' => true, 'x-component' => '{$componentName}'])
+                                ->keyBy(fn (\$v, \$k) => str_starts_with(\$k, 'x-') ? \$k . '.prop' : \$k)
                                 ->map(fn (\$v, \$k) => str_starts_with(\$k, 'x-') && \$v === true ? '' : \$v)
+                                ->merge(['x-data' => '', 'x-component' => '{$componentName}'])
                                 ->all()
                         );
                         @endphp

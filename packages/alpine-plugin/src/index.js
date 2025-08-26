@@ -46,9 +46,13 @@ export default function Bond(Alpine) {
         const component = expression.split(':')[0]
         const index = parseInt(modifiers[0])
         const exp = Alpine.expressions[component][index]
+        const expValue = exp.name !== 'x-ref' ? `${exp.value}/*bond:${expression}*/` : exp.value
 
-        Alpine.bind(el, {
-            [exp.name]: `${exp.value}/*bond:${expression}*/`
+        Alpine.bind(el, {[exp.name]: expValue})
+
+        Alpine.mutateDom(() => {
+            el.setAttribute(exp.name, modifiers[1] == 'prop' ? expValue : exp.value)
+            el.removeAttribute(`${Alpine.prefixed('exp')}.${modifiers.join('.')}`)
         })
     }).before('ignore')
 
@@ -163,8 +167,8 @@ function initProps(Alpine, el, props, ctx) {
     }
 
     Alpine.setErrorHandler((error, el, expression = undefined) => {
-        const match = expression.match(/^(.*?)\/\*(bond:[^*]+)\*\//)
-        const bondExpression = getBondExpression(match[2])
+        const match = expression?.match(/([\s\S]*?)\/\*(bond:[^*]+)\*\/\s*$/);
+        const bondExpression = match ? getBondExpression(match[2]) : undefined
 
         if (bondExpression) {
             const debug = bondExpression.debug
