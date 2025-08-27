@@ -21,9 +21,16 @@ export default function Bond(Alpine) {
             const component = expression.split(':')[0]
             const index = parseInt(modifiers[0])
             const prop = modifiers[1] == 'prop'
-            const exp = Alpine.expressions[component][index]
+            const exp = Alpine.expressions[component]?.[index]
+
+            if (!exp) {
+                console.warn(`Unable to find expression for ${attr.name}="${attr.value}"`)
+
+                continue
+            }
+
             const expAttr = prop ? 'x-prop:' + exp.name.substr(2) : exp.name
-            const expValue = exp.name !== 'x-ref' ? `${exp.value}/*bond:${expression}*/` : exp.value
+            const expValue = ! ['x-ref', 'x-slot', 'x-component'].includes(exp.name) ? `${exp.value}/*bond:${expression}*/` : exp.value
 
             Alpine.mutateDom(() => {
                 el.setAttribute(expAttr, expValue)
@@ -34,7 +41,6 @@ export default function Bond(Alpine) {
 
     Alpine.directive('prop', (el, { value, expression }, { effect }) => {
         const data = el._x_dataStack[0]
-
         data.props ??= {}
 
         const target = el.parentNode
@@ -42,23 +48,38 @@ export default function Bond(Alpine) {
 
         const evaluate = Alpine.evaluateLater(target, expression)
 
-        effect(() => evaluate(i => data.props[value] = i, { scope: extra }))
+        effect(() => {
+            const scope = Alpine.mergeProxies([extra, {$el: el}])
+            
+            Alpine.dontAutoEvaluateFunctions(() => {
+                evaluate(i => data.props[value] = i, { scope })
+            })
+        })
     }).before('bind')
 
-    Alpine.directive('slot', (el, { expression }, { evaluate }) => {
-        const parent = Alpine.findClosest(el, element => element._x_bond)
-        const scope = Alpine.closestRoot(parent.parentNode)
+    Alpine.addRootSelector(() => `[${Alpine.prefixed('slot')}]`)
 
-        if (scope) {
-            el._x_dataStack = scope._x_dataStack
+    Alpine.directive('slot', (el, { expression }, { evaluate }) => {
+        const parent = Alpine.findClosest(el, element => element.getAttribute('x-component') === expression)
+        const target = Alpine.closestRoot(parent.parentNode)
+
+        if (target) {
+            el._x_dataStack = target._x_dataStack
         }
     }).before('bind')
 
     Alpine.directive('component', (el, { expression }, { evaluate }) => {
         const name = expression
         const component = Alpine.components[name]
+        if (!component) {
+            console.warn(`Unable to find component for x-component="${name}"`)
+
+            return
+        }
         
         const ctx = el._x_dataStack[0]
+        ctx.props ??= {}
+
         const data = component.callback?.apply(ctx, [ctx.props]) || {}
 
         Object.defineProperties(ctx, Object.getOwnPropertyDescriptors(data))
