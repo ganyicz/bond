@@ -92,7 +92,7 @@ export default function Bond(Alpine) {
 
     // [x-else] support
     Alpine.directive('if', (el, { expression }, { effect, cleanup }) => {
-        if (el.tagName.toLowerCase() !== 'template') warn('x-if can only be used on a <template> tag', el)
+        if (el.tagName.toLowerCase() !== 'template') console.warn('x-if can only be used on a <template> tag', el)
 
         let evaluate = Alpine.evaluateLater(el, expression)
 
