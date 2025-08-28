@@ -11,8 +11,10 @@ export default function Bond(Alpine) {
     }
 
     Alpine.interceptInit(el => {
-        const expAttributes = Array.from(el.attributes)
-            .filter(i => i.name.startsWith(Alpine.prefixed('exp')))
+        const attributes = Array.from(el.attributes)
+        const expAttributes = attributes.filter(i => i.name.startsWith(Alpine.prefixed('exp')))
+        const componentAttr = attributes.find(i => i.name === Alpine.prefixed('component'))
+        const targetComponent = componentAttr?.value ? Alpine.components[componentAttr.value] : undefined
 
         for (const attr of expAttributes) {
             const expression = attr.value
@@ -20,7 +22,6 @@ export default function Bond(Alpine) {
 
             const component = expression.split(':')[0]
             const index = parseInt(modifiers[0])
-            const prop = modifiers[1] == 'prop'
             const exp = Alpine.expressions[component]?.[index]
 
             if (!exp) {
@@ -29,7 +30,10 @@ export default function Bond(Alpine) {
                 continue
             }
 
-            const expAttr = prop ? 'x-prop:' + exp.name.substr(2) : exp.name
+            const prefixLength = Alpine.prefixed('').length
+            const unprefixed = exp.name.substr(prefixLength)
+            const prop = modifiers[1] == 'prop' && targetComponent && targetComponent.props.includes(unprefixed)
+            const expAttr = prop ? 'x-prop:' + unprefixed : exp.name
             const expValue = ! ['x-ref', 'x-slot', 'x-component'].includes(exp.name) ? `${exp.value}/*bond:${expression}*/` : exp.value
 
             Alpine.mutateDom(() => {
@@ -56,8 +60,6 @@ export default function Bond(Alpine) {
             })
         })
     }).before('bind')
-
-    Alpine.addRootSelector(() => `[${Alpine.prefixed('slot')}]`)
 
     Alpine.directive('slot', (el, { expression }, { evaluate }) => {
         const parent = Alpine.findClosest(el, element => element.getAttribute('x-component') === expression)
