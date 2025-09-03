@@ -15,7 +15,7 @@ composer require ganyicz/bond
 
 Next, add the following lines to your `resources/js/app.js` file. Bond will compile all scripts extracted from your Blade files here.
 
-```
+```diff
   import './bootstrap';
 + import '../../vendor/ganyicz/bond/js/alpine'
 + import 'virtual:bond';
