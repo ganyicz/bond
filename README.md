@@ -17,7 +17,7 @@ Next, add the following lines to your `resources/js/app.js` file. Bond will comp
 
 ```diff
 import './bootstrap';
-+ import '../../vendor/ganyicz/bond/js/alpine'
++ import '../../vendor/ganyicz/bond/js/alpine';
 + import 'virtual:bond';
 ```
 
