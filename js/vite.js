@@ -1,6 +1,5 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
-import { watch } from 'chokidar';
 import ts from 'typescript';
 
 export default function bond(options = {}) {
@@ -217,45 +216,30 @@ export default function bond(options = {}) {
   }
 
   /**
-   * Setup file watcher for blade files
+   * Handle file changes for blade files
    */
-  function setupWatcher() {
-    const viewsDir = resolve(viewsPath);
-    
-    const watcher = watch(`${viewsDir}/**/*.blade.php`, {
-      ignored: /(^|[\/\\])\../,
-      persistent: true,
-    });
-
-    function handleFileChange(filePath) {
-      if (server) {
-        // Invalidate the main virtual module
-        const virtualModule = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
-        if (virtualModule) {
-          server.reloadModule(virtualModule);
-        }
-        
-        // Find and invalidate the corresponding virtual .ts?bond module
-        const cleanPath = filePath.replace(/\.blade\.php$/, '');
-        const virtualScriptPath = `${cleanPath}.ts?bond`;
-        
-        const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
-        if (scriptModule) {
-          server.reloadModule(scriptModule);
-        }
-        
-        // Force a full reload as fallback
-        server.ws.send({
-          type: 'full-reload'
-        });
+  function handleFileChange(filePath) {
+    if (server) {
+      // Invalidate the main virtual module
+      const virtualModule = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
+      if (virtualModule) {
+        server.reloadModule(virtualModule);
       }
+      
+      // Find and invalidate the corresponding virtual .ts?bond module
+      const cleanPath = filePath.replace(/\.blade\.php$/, '');
+      const virtualScriptPath = `${cleanPath}.ts?bond`;
+      
+      const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
+      if (scriptModule) {
+        server.reloadModule(scriptModule);
+      }
+      
+      // Force a full reload as fallback
+      server.ws.send({
+        type: 'full-reload'
+      });
     }
-
-    watcher.on('change', handleFileChange);
-    watcher.on('add', handleFileChange);
-    watcher.on('unlink', handleFileChange);
-
-    return watcher;
   }
 
   return {
@@ -263,6 +247,29 @@ export default function bond(options = {}) {
     
     configureServer(devServer) {
       server = devServer;
+      
+      // Setup file watching using Vite's internal watcher during dev
+      if (watchFiles) {
+        const bladeFiles = findBladeFiles(resolve(viewsPath));
+        
+        for (const filePath of bladeFiles) {
+          // Add each blade file to Vite's watcher
+          server.watcher.add(filePath);
+        }
+        
+        // Listen to file changes
+        server.watcher.on('change', handleFileChange);
+        server.watcher.on('add', (filePath) => {
+          if (filePath.endsWith('.blade.php')) {
+            handleFileChange(filePath);
+          }
+        });
+        server.watcher.on('unlink', (filePath) => {
+          if (filePath.endsWith('.blade.php')) {
+            handleFileChange(filePath);
+          }
+        });
+      }
     },
 
     buildStart() {
@@ -385,11 +392,5 @@ export default function bond(options = {}) {
     },
 
 
-
-    configResolved(config) {
-      if (config.command === 'serve' && watchFiles) {
-        setupWatcher();
-      }
-    }
   };
 }

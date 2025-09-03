@@ -11,8 +11,7 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'fs',
-        'path', 
-        'chokidar',
+        'path',
         'typescript'
       ]
     },

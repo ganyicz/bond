@@ -1,6 +1,5 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { resolve, join } from "path";
-import { watch } from "chokidar";
 import ts from "typescript";
 function bond(options = {}) {
   const {
@@ -136,38 +135,44 @@ function bond(options = {}) {
   function isBladeScriptRequest(id) {
     return id.includes("?bond");
   }
-  function setupWatcher() {
-    const viewsDir = resolve(viewsPath);
-    const watcher = watch(`${viewsDir}/**/*.blade.php`, {
-      ignored: /(^|[\/\\])\../,
-      persistent: true
-    });
-    function handleFileChange(filePath) {
-      if (server) {
-        const virtualModule = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
-        if (virtualModule) {
-          server.reloadModule(virtualModule);
-        }
-        const cleanPath = filePath.replace(/\.blade\.php$/, "");
-        const virtualScriptPath = `${cleanPath}.ts?bond`;
-        const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
-        if (scriptModule) {
-          server.reloadModule(scriptModule);
-        }
-        server.ws.send({
-          type: "full-reload"
-        });
+  function handleFileChange(filePath) {
+    if (server) {
+      const virtualModule = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
+      if (virtualModule) {
+        server.reloadModule(virtualModule);
       }
+      const cleanPath = filePath.replace(/\.blade\.php$/, "");
+      const virtualScriptPath = `${cleanPath}.ts?bond`;
+      const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
+      if (scriptModule) {
+        server.reloadModule(scriptModule);
+      }
+      server.ws.send({
+        type: "full-reload"
+      });
     }
-    watcher.on("change", handleFileChange);
-    watcher.on("add", handleFileChange);
-    watcher.on("unlink", handleFileChange);
-    return watcher;
   }
   return {
     name: "vite-blade-script-setup",
     configureServer(devServer) {
       server = devServer;
+      if (watchFiles) {
+        const bladeFiles = findBladeFiles(resolve(viewsPath));
+        for (const filePath of bladeFiles) {
+          server.watcher.add(filePath);
+        }
+        server.watcher.on("change", handleFileChange);
+        server.watcher.on("add", (filePath) => {
+          if (filePath.endsWith(".blade.php")) {
+            handleFileChange(filePath);
+          }
+        });
+        server.watcher.on("unlink", (filePath) => {
+          if (filePath.endsWith(".blade.php")) {
+            handleFileChange(filePath);
+          }
+        });
+      }
     },
     buildStart() {
       const bladeFiles = findBladeFiles(resolve(viewsPath));
@@ -252,11 +257,6 @@ function bond(options = {}) {
         }
       }
       return null;
-    },
-    configResolved(config) {
-      if (config.command === "serve" && watchFiles) {
-        setupWatcher();
-      }
     }
   };
 }
