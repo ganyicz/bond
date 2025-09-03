@@ -41,7 +41,7 @@ export default defineConfig({
 });
 ```
 
-If you're using Alpine.js CDN, make sure it's registered after your `app.js` file. This is because it includes an Alpine plugin, which needs to be registered before Alpine starts.
+If you're using Alpine.js CDN, make sure it's registered after your `app.js` file.
 
 ```diff
 <head>
