@@ -20,7 +20,7 @@ import '../../vendor/ganyicz/bond/js/alpine'
 import 'virtual:bond';
 ```
 
-Next, update your `vite.config.js` to register Bond:
+Finally, update your `vite.config.js` to register Bond:
 
 ```diff
 import { defineConfig } from 'vite';
