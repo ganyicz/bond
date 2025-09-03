@@ -49,7 +49,7 @@ If you're using Alpine.js CDN, make sure it's registered after your `app.js` fil
     <!-- This needs to be first -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Alpine.js goes here -->
+    <!-- Alpine CDN goes here -->
     <script src="//unpkg.com/alpinejs" defer></script> 
 </head>
 ```
