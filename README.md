@@ -13,13 +13,14 @@ Install Bond into your project using Composer:
 composer require ganyicz/bond
 ```
 
-Next, create a new JavaScript file in `resources/js` called `bond.js` (or `bond.ts`) with the following content:
+Next, add the following lines to your `app.js` file:
 
 ```
+import '../../vendor/ganyicz/bond/js/alpine'
 import 'virtual:bond';
 ```
 
-Bond will compile all scripts extracted from your Blade files into this file.
+Bond will compile all scripts extracted from your Blade files here.
 
 Next, update your `vite.config.js` to register Bond:
 
@@ -32,11 +33,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: [
-                'resources/css/app.css',
-                'resources/js/app.js',
-+               'resources/js/bond.js',
-            ],
+            input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
         }),
         tailwindcss(),
@@ -46,22 +43,19 @@ export default defineConfig({
 });
 ```
 
-Finally, publish Bond’s assets:
-
-```bash
-php artisan vendor:publish --tag=bond-assets
-```
-
-And register them in your layout:
+If you're using Alpine.js CDN, make sure it's registered after your `app.js` file. This is because it includes an Alpine plugin, which needs to be registered before Alpine starts.
 
 ```diff
 <head>
-+   <script src="{{ asset('vendor/alpine-bond-plugin.js') }}"></script>
-+   @vite([..., 'resources/js/bond.js'])
+    <!-- This needs to be first -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Alpine.js goes here -->
+    <script src="//unpkg.com/alpinejs" defer></script> 
 </head>
 ```
 
-These must be placed in the `<head>` tag, with the plugin script registered first.
+If you're using Livewire, you don't need to worry about this, as Livewire automatically loads Alpine.js for you. Just make sure your `app.js` file is registered somwhere in the `<head>` tag.
 
 ## VS Code Extension
 
