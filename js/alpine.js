@@ -20,6 +20,11 @@ document.addEventListener('alpine:init', () => {
             const context = el._x_dataStack[0]
             const component = Alpine.components[name]
 
+            if (!component) {
+                console.warn(`Bond component "${name}" wasn't registered. Did you include 'virtual:bond' import in your app.js?`)
+                return
+            }
+        
             if (component.props) {
                 initProps(el, component.props, el._x_refreshXForScope ? el._x_dataStack[1] : {})
             }
