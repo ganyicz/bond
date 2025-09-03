@@ -16,8 +16,9 @@ composer require ganyicz/bond
 Next, add the following lines to your `resources/js/app.js` file. Bond will compile all scripts extracted from your Blade files here.
 
 ```
-import '../../vendor/ganyicz/bond/js/alpine'
-import 'virtual:bond';
+  import './bootstrap';
++ import '../../vendor/ganyicz/bond/js/alpine'
++ import 'virtual:bond';
 ```
 
 Finally, update your `vite.config.js` to register Bond:
