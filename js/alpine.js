@@ -6,16 +6,16 @@ document.addEventListener('alpine:init', () => {
             Alpine.components[component] = {props, callback}
         }
 
-        Alpine.directive('slot', (el, { expression }, { evaluate }) => {
+        Alpine.directive('slot', Alpine.skipDuringClone((el, { expression }, { evaluate }) => {
             const parent = Alpine.findClosest(el, element => element._x_bond)
             const scope = Alpine.closestRoot(parent.parentNode)
 
             if (scope) {
                 el._x_dataStack = scope._x_dataStack
             }
-        }).before('init')
+        })).before('init')
 
-        Alpine.directive('component', (el, { expression }, { evaluate }) => {
+        Alpine.directive('component', Alpine.skipDuringClone((el, { expression }, { evaluate }) => {
             const name = expression
             const context = el._x_dataStack[0]
             const component = Alpine.components[name]
@@ -41,7 +41,7 @@ document.addEventListener('alpine:init', () => {
             el._x_bond = true
 
             data['init'] && evaluate(data['init'])
-        }).before('init')
+        })).before('init')
 
         function initProps(el, props, ctx) {
             el._x_props = Alpine.reactive({})
