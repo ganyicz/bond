@@ -1,6 +1,5 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { resolve, join } from "path";
-import ts from "typescript";
 function bond(options = {}) {
   const {
     viewsPath = "resources/views",
@@ -37,96 +36,23 @@ function bond(options = {}) {
     const match = scriptSetupRegex.exec(content);
     return match ? match[1].trim() : null;
   }
-  function generateComponentName(filePath) {
-    const relativePath = filePath.replace(resolve(viewsPath), "").replace(/^\//, "").replace(/\.blade\.php$/, "").replace(/\//g, ".");
+  function generateComponentName(viewsPath2, filePath) {
+    const relativePath = filePath.replace(resolve(viewsPath2), "").replace(/^\//, "").replace(/\.blade\.php$/, "").replace(/\//g, ".");
     return relativePath;
   }
-  function extractPropNames(typeNode) {
-    if (!ts.isTypeLiteralNode(typeNode)) {
-      return [];
-    }
-    const propNames = [];
-    for (const member of typeNode.members) {
-      if (ts.isPropertySignature(member) && member.name) {
-        if (ts.isIdentifier(member.name)) {
-          propNames.push(member.name.text);
-        }
-      }
-    }
-    return propNames;
+  function extractPropNames(code) {
+    const typeMatch = code.match(/props\s*:\s*{([^}]*)}/s);
+    if (!typeMatch) return [];
+    const propsMatch = typeMatch[1].matchAll(/["']?([a-zA-Z_$][\w$]*)["']?\s*\??:/g);
+    return [...propsMatch].map((m) => m[1]);
   }
-  function transformMountCalls(code, filePath) {
-    const componentName = generateComponentName(filePath);
-    const usesMountFunction = code.includes("mount(");
-    const sourceFile = ts.createSourceFile(
-      "temp.ts",
-      code,
-      ts.ScriptTarget.ESNext,
-      true
-    );
-    let hasChanges = false;
-    const transformer = (context) => {
-      return (rootNode) => {
-        function visit(node) {
-          if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "mount") {
-            hasChanges = true;
-            const callbackArg = node.arguments[0];
-            if (ts.isArrowFunction(callbackArg)) {
-              let propNames = [];
-              if (callbackArg.parameters.length > 0) {
-                const firstParam = callbackArg.parameters[0];
-                if (firstParam.type) {
-                  propNames = extractPropNames(firstParam.type);
-                }
-              }
-              const newCallback = ts.factory.createArrowFunction(
-                callbackArg.modifiers,
-                callbackArg.typeParameters,
-                callbackArg.parameters.map(
-                  (param) => ts.factory.createParameterDeclaration(
-                    param.modifiers,
-                    param.dotDotDotToken,
-                    param.name,
-                    param.questionToken,
-                    void 0,
-                    // Remove type annotation
-                    param.initializer
-                  )
-                ),
-                callbackArg.type,
-                callbackArg.equalsGreaterThanToken,
-                callbackArg.body
-              );
-              return ts.factory.createCallExpression(
-                node.expression,
-                node.typeArguments,
-                [
-                  ts.factory.createStringLiteral(componentName),
-                  ts.factory.createArrayLiteralExpression(
-                    propNames.map((name) => ts.factory.createStringLiteral(name))
-                  ),
-                  newCallback
-                ]
-              );
-            }
-          }
-          return ts.visitEachChild(node, visit, context);
-        }
-        return ts.visitNode(rootNode, visit);
-      };
-    };
-    const result = ts.transform(sourceFile, [transformer]);
-    let finalCode = code;
-    if (hasChanges) {
-      const printer = ts.createPrinter();
-      finalCode = printer.printFile(result.transformed[0]);
-    }
-    result.dispose();
-    if (usesMountFunction) {
-      const importStatement = "import { mount } from 'bond';\n\n";
-      finalCode = importStatement + finalCode;
-    }
-    return finalCode;
+  function transformMountCalls(code, filename) {
+    const componentName = generateComponentName(viewsPath, filename);
+    const props = JSON.stringify(extractPropNames(code));
+    let modified = "";
+    modified += "import { mount } from 'bond';\n\n";
+    modified += code.replace("mount(", `mount("${componentName}", ${props}, `);
+    return modified;
   }
   function parseBladeRequest(id) {
     const [filename] = id.split("?", 2);

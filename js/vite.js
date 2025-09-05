@@ -1,6 +1,5 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
-import ts from 'typescript';
 
 export default function bond(options = {}) {
   const {
@@ -11,7 +10,7 @@ export default function bond(options = {}) {
   let server;
   const virtualModuleId = 'virtual:bond';
   const resolvedVirtualModuleId = '\0' + virtualModuleId;
-  
+
   /**
    * Find all .blade.php files recursively  
    */
@@ -58,7 +57,7 @@ export default function bond(options = {}) {
   /**
    * Generate component name from file path
    */
-  function generateComponentName(filePath) {
+  function generateComponentName(viewsPath, filePath) {
     const relativePath = filePath
       .replace(resolve(viewsPath), '')
       .replace(/^\//, '')
@@ -68,137 +67,25 @@ export default function bond(options = {}) {
     return relativePath;
   }
 
-  /**
-   * Extract prop names from TypeScript type (including optional properties)
-   */
-  function extractPropNames(typeNode) {
-    if (!ts.isTypeLiteralNode(typeNode)) {
-      return [];
-    }
+  function extractPropNames(code) {
+    const typeMatch = code.match(/props\s*:\s*{([^}]*)}/s);
+    if (!typeMatch) return [];
 
-    const propNames = [];
-    
-    for (const member of typeNode.members) {
-      if (ts.isPropertySignature(member) && member.name) {
-        if (ts.isIdentifier(member.name)) {
-          propNames.push(member.name.text);
-        }
-      }
-    }
-
-    return propNames;
+    const propsMatch = typeMatch[1].matchAll(/["']?([a-zA-Z_$][\w$]*)["']?\s*\??:/g);
+    return [...propsMatch].map(m => m[1]);
   }
 
-  /**
-   * Transform mount() calls and add import if needed
-   */
-  function transformMountCalls(code, filePath) {
-    const componentName = generateComponentName(filePath);
-    
-    // Check if mount is used in the code
-    const usesMountFunction = code.includes('mount(');
-    
-    // Create TypeScript source file
-    const sourceFile = ts.createSourceFile(
-      'temp.ts',
-      code,
-      ts.ScriptTarget.ESNext,
-      true
-    );
+  function transformMountCalls(code, filename) {
+    const componentName = generateComponentName(viewsPath, filename);
+    const props = JSON.stringify(extractPropNames(code))
 
-    // Track if we made any changes
-    let hasChanges = false;
+    let modified = ''
 
-    // Transform the AST
-    const transformer = (context) => {
-      return (rootNode) => {
-        function visit(node) {
-          // Look for mount() call expressions
-          if (ts.isCallExpression(node) && 
-              ts.isIdentifier(node.expression) && 
-              node.expression.text === 'mount') {
-            
-            hasChanges = true;
-            
-            // Get the callback parameter (first argument)
-            const callbackArg = node.arguments[0];
-            
-            if (ts.isArrowFunction(callbackArg)) {
-              let propNames = [];
-              
-              // Extract prop names if callback has parameters
-              if (callbackArg.parameters.length > 0) {
-                const firstParam = callbackArg.parameters[0];
-                
-                // Extract prop names from the parameter's type annotation
-                if (firstParam.type) {
-                  propNames = extractPropNames(firstParam.type);
-                }
-              }
-              
-              // Create new arrow function without the type annotation
-              const newCallback = ts.factory.createArrowFunction(
-                callbackArg.modifiers,
-                callbackArg.typeParameters,
-                callbackArg.parameters.map(param => 
-                  ts.factory.createParameterDeclaration(
-                    param.modifiers,
-                    param.dotDotDotToken,
-                    param.name,
-                    param.questionToken,
-                    undefined, // Remove type annotation
-                    param.initializer
-                  )
-                ),
-                callbackArg.type,
-                callbackArg.equalsGreaterThanToken,
-                callbackArg.body
-              );
-
-              // Create new mount call with component name, props array, and callback
-              return ts.factory.createCallExpression(
-                node.expression,
-                node.typeArguments,
-                [
-                  ts.factory.createStringLiteral(componentName),
-                  ts.factory.createArrayLiteralExpression(
-                    propNames.map(name => ts.factory.createStringLiteral(name))
-                  ),
-                  newCallback
-                ]
-              );
-            }
-          }
-
-          return ts.visitEachChild(node, visit, context);
-        }
-
-        return ts.visitNode(rootNode, visit);
-      };
-    };
-
-    // Apply the transformation
-    const result = ts.transform(sourceFile, [transformer]);
+    modified += "import { mount } from 'bond';\n\n"
+    modified += code.replace('mount(', `mount("${componentName}", ${props}, `)
     
-    let finalCode = code;
-    
-    if (hasChanges) {
-      // Print the transformed AST back to code
-      const printer = ts.createPrinter();
-      finalCode = printer.printFile(result.transformed[0]);
-    }
-    
-    result.dispose();
-    
-    // Add import only if mount function is used
-    if (usesMountFunction) {
-      const importStatement = "import { mount } from 'bond';\n\n";
-      finalCode = importStatement + finalCode;
-    }
-    
-    return finalCode;
+    return modified
   }
-
 
   /**
    * Parse blade script request
@@ -214,6 +101,7 @@ export default function bond(options = {}) {
   function isBladeScriptRequest(id) {
     return id.includes('?bond');
   }
+
 
   /**
    * Handle file changes for blade files

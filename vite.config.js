@@ -12,7 +12,6 @@ export default defineConfig({
       external: [
         'fs',
         'path',
-        'typescript'
       ]
     },
     outDir: 'dist',

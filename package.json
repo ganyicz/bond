@@ -10,9 +10,5 @@
   },
   "devDependencies": {
     "vite": "^5.0.0"
-  },
-  "dependencies": {
-    "chokidar": "^3.5.3",
-    "typescript": "^5.0.0"
   }
 }
