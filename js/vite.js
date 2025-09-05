@@ -258,7 +258,11 @@ export default function bond(options = {}) {
         }
         
         // Listen to file changes
-        server.watcher.on('change', handleFileChange);
+        server.watcher.on('change', (filePath) => {
+          if (filePath.endsWith('.blade.php')) {
+            handleFileChange(filePath)
+          }
+        });
         server.watcher.on('add', (filePath) => {
           if (filePath.endsWith('.blade.php')) {
             handleFileChange(filePath);

@@ -161,7 +161,11 @@ function bond(options = {}) {
         for (const filePath of bladeFiles) {
           server.watcher.add(filePath);
         }
-        server.watcher.on("change", handleFileChange);
+        server.watcher.on("change", (filePath) => {
+          if (filePath.endsWith(".blade.php")) {
+            handleFileChange(filePath);
+          }
+        });
         server.watcher.on("add", (filePath) => {
           if (filePath.endsWith(".blade.php")) {
             handleFileChange(filePath);
