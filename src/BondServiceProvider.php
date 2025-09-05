@@ -46,6 +46,10 @@ class BondServiceProvider extends ServiceProvider
                     
                     return <<<BLADE
                         @php
+                        if (class_exists(\Livewire\Livewire::class)) {
+                            \Livewire\Livewire::forceAssetInjection();
+                        }
+                        
                         \$attributes = \$attributes
                             ->map(fn (\$v, \$k) => \$v === true && str_starts_with(\$k, 'x-') ? '' : \$v)
                             ->merge(['x-data' => '', 'x-component' => '{$componentName}']);
