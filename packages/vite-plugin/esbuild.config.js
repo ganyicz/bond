@@ -1,16 +1,19 @@
 import * as esbuild from 'esbuild';
 
+const isProduction = process.env.NODE_ENV === 'production' || process.argv.includes('--production');
+
 const options = {
-    entryPoints: ['./src/index.js'],
+    entryPoints: ['./src/index.ts'],
     bundle: true,
     platform: 'node',
     format: 'esm',
     outfile: '../../dist/vite.js',
-    sourcemap: true,
+    sourcemap: !isProduction,
     external: [
         'vite',
         'typescript',
-        'fs'
+        'fs',
+        'magic-string',
     ]
 }
 

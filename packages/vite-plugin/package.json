@@ -5,6 +5,7 @@
     "type": "module",
     "scripts": {
         "build": "node esbuild.config.js",
+        "build:prod": "NODE_ENV=production node esbuild.config.js",
         "dev": "node esbuild.config.js --watch"
     },
     "dependencies": {

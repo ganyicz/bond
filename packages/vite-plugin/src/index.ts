@@ -2,7 +2,7 @@ import { extractAttributes, extractMountFunction, extractScriptSetupContent, has
 import * as fs from 'fs'
 import MagicString from 'magic-string';
 import { resolve, join } from 'path'
-import { Plugin, ViteDevServer } from 'vite'
+import { Plugin, ViteDevServer, ResolvedConfig } from 'vite'
 import ts from 'typescript'
 
 interface PluginConfig {
@@ -15,24 +15,25 @@ export default function bond(options: PluginConfig = {}): Plugin {
         defaultViewsPath = 'resources/views/components',
         viewsPrefix = 'resources/views',
     } = options;
-    
+
     let server: ViteDevServer;
     const virtualModuleId = 'virtual:bond';
     const resolvedVirtualModuleId = '\0' + virtualModuleId;
-  
+    let isDevMode = true;
+
     return {
         name: 'vite-bond-plugin',
-        
+
+        configResolved(config: ResolvedConfig) {
+            isDevMode = config.mode === 'development' || config.mode === 'dev';
+        },
+
         configureServer(devServer) {
             server = devServer;
 
-            const handleFileChange = function (path: string) {
-                
-            }
+            const handleFileChange = function (path: string) {}
 
-            server.watcher.on('add', (path) => {
-                
-            })
+            server.watcher.on('add', (path) => {})
 
             server.watcher.on('unlink', (path) => {
                 const root = process.cwd()
@@ -43,7 +44,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
 
                     if (scriptModule) {
                         server.reloadModule(scriptModule)
-                    }   
+                    }
                 }
             })
 
@@ -56,11 +57,11 @@ export default function bond(options: PluginConfig = {}): Plugin {
 
                     if (scriptModule) {
                         server.reloadModule(scriptModule);
-                    }   
+                    }
                 }
             })
         },
-        
+
         resolveId(id) {
             if (id.startsWith(virtualModuleId)) {
                 return '\0' + id;
@@ -70,7 +71,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
                 return id
             }
         },
-        
+
         load(id) {
             if (id.startsWith(resolvedVirtualModuleId)) {
                 const path = id.slice(resolvedVirtualModuleId.length + 1) || defaultViewsPath
@@ -101,7 +102,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
                 if (!script || ! mount) return null
 
                 const ms = new MagicString(code)
-                
+
                 // Extract script & add import
                 ms.remove(0, script.start)
                 ms.remove(script.end, code.length)
@@ -127,10 +128,9 @@ export default function bond(options: PluginConfig = {}): Plugin {
 
                 return {
                     code: ms.toString(),
-                    map: ms.generateMap({
-                        source: fileName,
-                        includeContent: false,
-                    })
+                    map: isDevMode
+                        ? ms.generateMap({ source: fileName, includeContent: false })
+                        : null
                 }
             }
         },
@@ -141,14 +141,14 @@ function findBladeFilePaths(dir: string): string[] {
     if (!fs.existsSync(dir)) {
         return [];
     }
-    
+
     const files = fs.readdirSync(dir, { withFileTypes: true });
 
     let results: string[] = [];
 
     for (const file of files) {
         const filePath = join(dir, file.name)
-        
+
         if (file.isDirectory()) {
             results = results.concat(findBladeFilePaths(filePath))
         } else {
@@ -168,12 +168,12 @@ function getProps(code: string): string[] {
 
     const callback = expression.arguments[0]
     if (! ts.isArrowFunction(callback)) return []
-    
+
     const firstParameterType = callback.parameters[0]?.type
 
     if (firstParameterType && ts.isTypeLiteralNode(firstParameterType)) {
         const props: string[] = [];
-                
+
         for (const member of firstParameterType.members) {
             if (ts.isPropertySignature(member) && member.name) {
                 if (ts.isIdentifier(member.name)) {
@@ -189,8 +189,8 @@ function getProps(code: string): string[] {
 }
 
 function isMountCall(node: ts.Node): node is ts.CallExpression {
-    return ts.isCallExpression(node) && 
-        ts.isIdentifier(node.expression) && 
+    return ts.isCallExpression(node) &&
+        ts.isIdentifier(node.expression) &&
         node.expression.text === 'mount'
 }
 
@@ -198,7 +198,7 @@ function stripIndentation(code: string): string
 {
     const trailingLines = code.substring(code.indexOf('\n'))
     const whitespace = trailingLines.match(/^[ \t]*(?=\S)/gm);
-	const minIndent = whitespace?.reduce((r, a) => Math.min(r, a.length), Infinity)
+    const minIndent = whitespace?.reduce((r, a) => Math.min(r, a.length), Infinity)
     if (!minIndent) return code
 
     const regex = new RegExp(`^[ \\t]{${minIndent}}`, 'gm')

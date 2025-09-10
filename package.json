@@ -1,7 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "build:livewire": "node ./scripts/build-livewire.js"
+    "build:livewire": "node ./scripts/build-livewire.js",
+    "packages:install": "cd packages/alpine-plugin && npm install && cd ../language-core && npm install && cd ../language-server && npm install && cd ../vite-plugin && npm install && cd ../vscode && npm install && cd ../../",
+    "packages:build": "cd packages/language-core && npm run build && cd ../vite-plugin && npm run build && cd ../../",
+    "packages:build:prod": "cd packages/language-core && npm run build && cd ../vite-plugin && npm run build:prod && cd ../../"
   },
   "devDependencies": {
     "esbuild": "^0.23.0",
