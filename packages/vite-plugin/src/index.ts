@@ -25,7 +25,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
         name: 'vite-bond-plugin',
 
         configResolved(config: ResolvedConfig) {
-            isDevMode = config.mode === 'development' || config.mode === 'dev';
+            isDevMode = config.mode !== 'production';
         },
 
         configureServer(devServer) {
