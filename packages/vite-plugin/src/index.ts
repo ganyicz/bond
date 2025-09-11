@@ -2,7 +2,7 @@ import { extractAttributes, extractMountFunction, extractScriptSetupContent, has
 import * as fs from 'fs'
 import MagicString from 'magic-string';
 import { resolve, join } from 'path'
-import { Plugin, ViteDevServer } from 'vite'
+import { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import ts from 'typescript'
 
 interface PluginConfig {
@@ -17,11 +17,16 @@ export default function bond(options: PluginConfig = {}): Plugin {
     } = options;
     
     let server: ViteDevServer;
+    let config: ResolvedConfig
     const virtualModuleId = 'virtual:bond';
     const resolvedVirtualModuleId = '\0' + virtualModuleId;
   
     return {
         name: 'vite-bond-plugin',
+
+        configResolved(resolvedConfig) {
+            config = resolvedConfig
+        },
         
         configureServer(devServer) {
             server = devServer;
@@ -102,7 +107,6 @@ export default function bond(options: PluginConfig = {}): Plugin {
 
                 const ms = new MagicString(code)
                 
-                // Extract script & add import
                 ms.remove(0, script.start)
                 ms.remove(script.end, code.length)
                 ms.prepend(`import { mount, expressions } from '@bond/alpine-plugin'\n`)
@@ -127,10 +131,9 @@ export default function bond(options: PluginConfig = {}): Plugin {
 
                 return {
                     code: ms.toString(),
-                    map: ms.generateMap({
-                        source: fileName,
-                        includeContent: false,
-                    })
+                    map: config.mode !== 'production'
+                        ? ms.generateMap({ source: fileName })
+                        : null,
                 }
             }
         },
