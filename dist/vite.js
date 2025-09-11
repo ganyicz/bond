@@ -7921,7 +7921,7 @@ function extractAttributes(code) {
 // src/index.ts
 import * as fs from "fs";
 
-// node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs
+// ../../node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs
 var comma = ",".charCodeAt(0);
 var semicolon = ";".charCodeAt(0);
 var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -8003,7 +8003,7 @@ function encode(decoded) {
   return writer.flush();
 }
 
-// node_modules/magic-string/dist/magic-string.es.mjs
+// ../../node_modules/magic-string/dist/magic-string.es.mjs
 var BitSet = class _BitSet {
   constructor(arg) {
     this.bits = arg instanceof _BitSet ? arg.bits.slice() : [];
@@ -8440,6 +8440,9 @@ var MagicString = class _MagicString {
       }
       if (chunk.outro.length) mappings.advance(chunk.outro);
     });
+    if (this.outro) {
+      mappings.advance(this.outro);
+    }
     return {
       file: options.file ? options.file.split(/[/\\]/).pop() : void 0,
       sources: [
@@ -8950,7 +8953,12 @@ var MagicString = class _MagicString {
     const { original } = this;
     const index = original.indexOf(string);
     if (index !== -1) {
-      this.overwrite(index, index + string.length, replacement);
+      if (typeof replacement === "function") {
+        replacement = replacement(string, index, original);
+      }
+      if (string !== replacement) {
+        this.overwrite(index, index + string.length, replacement);
+      }
     }
     return this;
   }
@@ -8965,7 +8973,11 @@ var MagicString = class _MagicString {
     const stringLength = string.length;
     for (let index = original.indexOf(string); index !== -1; index = original.indexOf(string, index + stringLength)) {
       const previous = original.slice(index, index + stringLength);
-      if (previous !== replacement) this.overwrite(index, index + stringLength, replacement);
+      let _replacement = replacement;
+      if (typeof replacement === "function") {
+        _replacement = replacement(previous, index, original);
+      }
+      if (previous !== _replacement) this.overwrite(index, index + stringLength, _replacement);
     }
     return this;
   }
@@ -8991,10 +9003,14 @@ function bond(options = {}) {
     viewsPrefix = "resources/views"
   } = options;
   let server;
+  let config;
   const virtualModuleId = "virtual:bond";
   const resolvedVirtualModuleId = "\0" + virtualModuleId;
   return {
     name: "vite-bond-plugin",
+    configResolved(resolvedConfig) {
+      config = resolvedConfig;
+    },
     configureServer(devServer) {
       server = devServer;
       const handleFileChange = function(path) {
@@ -9076,10 +9092,7 @@ ${expressions.join(",\n")}
 ])`);
         return {
           code: ms.toString(),
-          map: ms.generateMap({
-            source: fileName,
-            includeContent: false
-          })
+          map: config.mode !== "production" ? ms.generateMap({ source: fileName }) : null
         };
       }
     }
