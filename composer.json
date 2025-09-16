@@ -10,6 +10,9 @@
     "require": {
         "laravel/framework": "^11.0 | ^12.0"
     },
+    "require-dev": {
+        "laravel/pint": "^1.24"
+    },
     "autoload": {
         "psr-4": {
             "Ganyicz\\Bond\\": "src/"
@@ -21,5 +24,13 @@
                 "Ganyicz\\Bond\\BondServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "lint": [
+            "pint --parallel"
+        ],
+        "lint:check": [
+            "pint --parallel --test"
+        ]
     }
 }
