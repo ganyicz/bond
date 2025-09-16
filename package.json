@@ -21,6 +21,7 @@
         "formatter:check": "prettier --check \"packages/**/*.{js,ts,json}\" \"scripts/**/*.{js,ts,json}\""
     },
     "devDependencies": {
+        "@prettier/plugin-oxc": "^0.0.4",
         "husky": "^9.1.7",
         "lint-staged": "^16.1.6",
         "prettier": "3.6.2"
