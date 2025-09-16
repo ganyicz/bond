@@ -4,9 +4,9 @@ import {
     extractScriptSetupContent,
     hasScriptSetup,
 } from '@bond/language-core';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import MagicString from 'magic-string';
-import { resolve, join } from 'path';
+import { resolve, join } from 'node:path';
 import { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import ts from 'typescript';
 

@@ -40,7 +40,7 @@ export class BondVirtualCode implements VirtualCode {
                 snapshot: {
                     getText: (start, end) => code.substring(start, end),
                     getLength: () => code.length,
-                    getChangeRange: () => undefined,
+                    getChangeRange: () => {},
                 },
             },
         ];

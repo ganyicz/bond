@@ -23,7 +23,7 @@ export default function Bond(Alpine) {
             const modifiers = attr.name.split('.').slice(1);
 
             const component = expression.split(':')[0];
-            const index = parseInt(modifiers[0]);
+            const index = Number.parseInt(modifiers[0]);
             const exp = Alpine.expressions[component]?.[index];
 
             if (!exp) {
@@ -180,7 +180,7 @@ export default function Bond(Alpine) {
         });
     }).before('if');
 
-    Alpine.setErrorHandler((error, el, expression = undefined) => {
+    Alpine.setErrorHandler((error, el, expression) => {
         const expressionMatch = expression?.match(/([\s\S]*?)\/\*(bond:[^*]+)\*\/\s*$/);
         const bondExpression = expressionMatch ? getBondExpression(expressionMatch[2]) : undefined;
 
@@ -219,7 +219,7 @@ export default function Bond(Alpine) {
             });
 
             console.warn(
-                `Alpine Expression Error: ${error.message}\n\n${expression ? 'Expression: \"' + expression + '\"\n\n' : ''}`,
+                `Alpine Expression Error: ${error.message}\n\n${expression ? 'Expression: "' + expression + '"\n\n' : ''}`,
                 el,
             );
         }
@@ -231,8 +231,8 @@ export default function Bond(Alpine) {
 }
 
 function getBondExpression(expression) {
-    if (!expression.startsWith('bond:')) return undefined;
-    if (!Alpine.expressions) return undefined;
+    if (!expression.startsWith('bond:')) return;
+    if (!Alpine.expressions) return;
 
     const [file, index] = expression.split(':').splice(1, 2);
 

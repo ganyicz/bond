@@ -1,0 +1,199 @@
+# Dependencies
+node_modules/
+vendor/
+.pnp
+.pnp.js
+.yarn/
+
+# Build outputs and compiled files
+dist/
+build/
+out/
+.next/
+.nuxt/
+.turbo/
+.vercel/
+.output/
+packages/*/dist/
+packages/*/build/
+scripts/**/dist/
+*.tsbuildinfo
+*.min.js
+*.min.mjs
+*.min.cjs
+*.bundle.js
+*.bundle.mjs
+
+# Coverage and test artifacts
+coverage/
+.nyc_output/
+test-results/
+*.lcov
+.coverage/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.prettiercache
+*.cache
+
+# Temporary files
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Environment and configuration
+.env
+.env.*
+!.env.example
+!.env.template
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.vim
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.bak
+
+# Version control
+.git/
+.svn/
+.hg/
+
+# Package manager files (lockfiles are typically generated)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+composer.lock
+Gemfile.lock
+
+# Documentation builds
+docs/.vitepress/dist/
+docs/.vuepress/dist/
+_site/
+.docusaurus/
+
+# Framework-specific
+.angular/
+.sveltekit/
+.astro/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Binary files
+*.exe
+*.dll
+*.so
+*.dylib
+*.wasm
+
+# Image files (usually not linted)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.webp
+*.avif
+
+# Font files
+*.woff
+*.woff2
+*.ttf
+*.otf
+*.eot
+
+# Media files
+*.mp3
+*.mp4
+*.wav
+*.ogg
+*.webm
+
+# Archive files
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.cer
+
+# Data files
+*.csv
+*.xlsx
+*.xls
+*.pdf
+
+# Generated files
+*.generated.*
+*_generated.*
+generated/
+
+# Third-party vendor files
+vendor/
+vendors/
+third-party/
+external/
+
+# Storybook
+.storybook/cache/
+storybook-static/
+
+# Sample/example directories (project-specific)
+sample/node_modules/
+sample/dist/
+sample/build/
+
+# PHP Composer vendor
+/vendor/
+
+# Laravel specific
+bootstrap/cache/
+storage/
+
+# Livewire specific (generated files in dist)
+dist/livewire.*.js
+dist/livewire.*.map
+
+# Ignore large generated or bundled files
+public/js/app.js
+public/css/app.css
+public/mix-manifest.json
+
+# Ignore files in husky directory (git hooks)
+.husky/

@@ -1,6 +1,6 @@
-import { execSync } from 'child_process';
-import { existsSync, rmSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { execSync } from 'node:child_process';
+import { existsSync, rmSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const TEMP_DIR = 'temp';
 const LIVEWIRE_DIR = join(TEMP_DIR, 'livewire');

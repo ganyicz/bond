@@ -25,7 +25,7 @@ export function createBondLanguagePlugin(ts: typeof import('typescript')): Langu
                 },
             ],
             getServiceScript() {
-                return undefined;
+                return;
             },
             getExtraServiceScripts(fileName, root) {
                 const scripts: TypeScriptExtraServiceScript[] = [];

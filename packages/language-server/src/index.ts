@@ -6,7 +6,7 @@ import {
 } from '@volar/language-server/node';
 import { create as createTypeScriptServices } from 'volar-service-typescript';
 import { createBondLanguagePlugin } from './languagePlugin';
-import path from 'path';
+import path from 'node:path';
 
 const connection = createConnection();
 const server = createServer(connection);

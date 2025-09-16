@@ -240,7 +240,7 @@ export function* generate(
 
             // Parse the left side of the for expression to extract all variables (item, index, collection)
             const forRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/;
-            const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
+            const forIteratorRE = /,([^,}\]]*)(?:,([^,}\]]*))?$/;
 
             const match = attribute.code.content.match(forRE);
             if (!match) continue;

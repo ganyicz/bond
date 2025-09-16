@@ -52,6 +52,4 @@ test('handles scopes', () => {
             ts,
         ),
     ];
-
-    debugger;
 });
