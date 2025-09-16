@@ -16,7 +16,7 @@ export function generateImports(extracted: ExtractedSourceCode | undefined): Gen
     let generated = '';
 
     if (extracted) {
-        generated = extracted.content + '\n\n';
+        generated = `${extracted.content}\n\n`;
     }
 
     generated += "import type { Magics } from '@bond/types'\n\n";
@@ -62,7 +62,7 @@ export function generateContext(
 
     if (merge) {
         prefix += `__CTX_merge(${merge}, (\n`;
-        suffix = ')' + suffix;
+        suffix = `)${suffix}`;
     } else {
         prefix += '(\n';
     }
@@ -106,7 +106,7 @@ export function* generate(
 
     const addContext = (depth: number, range: [number, number]): Context => {
         const context = {
-            name: '__CTX' + contextCounter,
+            name: `__CTX${contextCounter}`,
             depth,
             range,
         };
@@ -150,13 +150,13 @@ export function* generate(
     const closeScope = function* (scope: Scope): Generator<GeneratedCode> {
         yield* closeExpressions(scope);
 
-        if (scope.type == 'for') {
+        if (scope.type === 'for') {
             yield { text: '}\n\n', mappings: [] };
 
             popScope();
         }
 
-        if (scope.type == 'data') {
+        if (scope.type === 'data') {
             popScope();
         }
     };
@@ -176,7 +176,7 @@ export function* generate(
     };
 
     const getScopeVars = function (): string[] {
-        return scopes.filter((s) => s.type == 'for').flatMap((s) => s.variables || []);
+        return scopes.filter((s) => s.type === 'for').flatMap((s) => s.variables || []);
     };
 
     const mount = extractMountFunction(content);
@@ -200,7 +200,7 @@ export function* generate(
 
         yield* resetScope(attribute.depth, attribute.nodeRange);
 
-        if (attribute.name == 'x-data') {
+        if (attribute.name === 'x-data') {
             if (currentScope) closeExpressions(currentScope);
 
             const context = addContext(attribute.depth, attribute.nodeRange);
@@ -212,7 +212,7 @@ export function* generate(
                 type: 'data',
                 context,
             });
-        } else if (attribute.name == 'x-for') {
+        } else if (attribute.name === 'x-for') {
             if (!currentScope) continue;
 
             yield* closeExpressions(currentScope);
@@ -301,10 +301,10 @@ export function* generate(
 
             const scopeVars = getScopeVars();
 
-            if (attribute.name == 'x-ref') {
+            if (attribute.name === 'x-ref') {
                 const prefix = "\t'";
                 yield {
-                    text: prefix + attribute.code.content + "',\n",
+                    text: `${prefix}${attribute.code.content}',\n`,
                     mappings: [
                         {
                             source: attribute.code.start,
@@ -325,7 +325,7 @@ export function* generate(
             );
 
             yield {
-                text: prefix + interpolated.content + ',\n',
+                text: `${prefix}${interpolated.content},\n`,
                 mappings: interpolated.mappings.map((m) => ({
                     ...m,
                     source: attribute.code.start + m.source,

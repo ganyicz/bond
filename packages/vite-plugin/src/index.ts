@@ -22,7 +22,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
     let server: ViteDevServer;
     let config: ResolvedConfig;
     const virtualModuleId = 'virtual:bond';
-    const resolvedVirtualModuleId = '\0' + virtualModuleId;
+    const resolvedVirtualModuleId = `\0${virtualModuleId}`;
 
     return {
         name: 'vite-bond-plugin',
@@ -34,9 +34,13 @@ export default function bond(options: PluginConfig = {}): Plugin {
         configureServer(devServer) {
             server = devServer;
 
-            const handleFileChange = function (path: string) {};
+            const _handleFileChange = function (_path: string) {
+                // TODO: Implement file change handling
+            };
 
-            server.watcher.on('add', (path) => {});
+            server.watcher.on('add', (_path) => {
+                // TODO: Implement file add handling
+            });
 
             server.watcher.on('unlink', (path) => {
                 const root = process.cwd();
@@ -71,7 +75,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
 
         resolveId(id) {
             if (id.startsWith(virtualModuleId)) {
-                return '\0' + id;
+                return `\0${id}`;
             }
 
             if (id.endsWith('.ts?bond')) {
@@ -117,7 +121,7 @@ export default function bond(options: PluginConfig = {}): Plugin {
                 ms.prepend(`import { mount, expressions } from '@bond/alpine-plugin'\n`);
 
                 const componentName = fullPath
-                    .replace(viewsPrefix + '/', '')
+                    .replace(`${viewsPrefix}/`, '')
                     .replace('.blade.php', '')
                     .replaceAll('/', '.');
                 const props = getProps(mount.content);

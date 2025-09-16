@@ -32,17 +32,15 @@ export function createBondLanguagePlugin(ts: typeof import('typescript')): Langu
                 for (const code of forEachEmbeddedCode(root)) {
                     if (code.languageId === 'javascript') {
                         scripts.push({
-                            fileName: fileName + '.' + code.id + '.js',
+                            fileName: `${fileName}.${code.id}.js`,
                             code,
-                            extension: '.js',
-                            scriptKind: 1 satisfies ts.ScriptKind.JS,
+                            sourceMap: undefined,
                         });
                     } else if (code.languageId === 'typescript') {
                         scripts.push({
-                            fileName: fileName + '.' + code.id + '.ts',
+                            fileName: `${fileName}.${code.id}.ts`,
                             code,
-                            extension: '.ts',
-                            scriptKind: 3 satisfies ts.ScriptKind.TS,
+                            sourceMap: undefined,
                         });
                     }
                 }

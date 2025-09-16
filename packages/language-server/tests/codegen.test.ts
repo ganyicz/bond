@@ -12,6 +12,8 @@ test('generates code from input', () => {
             ts,
         ),
     ];
+
+    expect(ts(generated)).toMatchSnapshot();
 });
 
 test('generates for statement', () => {
@@ -28,6 +30,8 @@ test('generates for statement', () => {
             ts,
         ),
     ];
+
+    expect(ts(generated)).toMatchSnapshot();
 });
 
 test('handles scopes', () => {
@@ -44,7 +48,7 @@ test('handles scopes', () => {
 <div x-data="{display: false}">
     <div x-data="{disabled: true}">
         <div x-for="item of items">
-            
+
         </div>
     </div>
 </div>
@@ -52,4 +56,6 @@ test('handles scopes', () => {
             ts,
         ),
     ];
+
+    expect(ts(generated)).toMatchSnapshot();
 });

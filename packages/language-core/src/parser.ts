@@ -131,7 +131,7 @@ export function extractAttributes(code: string): ExtractedAttribute[] {
                 valueStartOffset += code
                     .substring(valueStartOffset, attrLoc.endOffset)
                     .indexOf(attr.value);
-                if (valueStartOffset == -1) continue;
+                if (valueStartOffset === -1) continue;
 
                 attributes.push({
                     name: attr.name,

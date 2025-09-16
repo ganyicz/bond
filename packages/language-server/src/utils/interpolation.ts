@@ -19,9 +19,9 @@ export function interpolateExpression(
     scopeVars?: string[] | undefined,
 ): InterpolatedExpression {
     const bladePlaceholder = '__BLADE__';
-    const normalizedPrefix = prefix.endsWith('.') ? prefix : prefix + '.';
+    const normalizedPrefix = prefix.endsWith('.') ? prefix : `${prefix}.`;
 
-    if (content.length == 0) {
+    if (content.length === 0) {
         return {
             content: normalizedPrefix,
             mappings: [
@@ -124,7 +124,7 @@ export function interpolateExpression(
             const text = node.text;
             const isLocal =
                 functionScopes.some((scope) => scope.has(text)) ||
-                (scopeVars && scopeVars.indexOf(text) !== -1);
+                (scopeVars && scopeVars.includes(text));
 
             // Check if this identifier is an object property key
             const parent = node.parent;
@@ -194,7 +194,7 @@ export function interpolateExpression(
         ...bladeExpressions.map((expression) => ({ ...expression, type: 'blade' })),
     ].sort((a, b) => a.start - b.start);
 
-    if (pointers.length == 0) {
+    if (pointers.length === 0) {
         return {
             content: content,
             mappings: [
@@ -232,7 +232,7 @@ export function interpolateExpression(
     for (let i = 0; i < pointers.length; i++) {
         const pointer = pointers[i];
 
-        if (i == 0 && pointer.start == 0) {
+        if (i === 0 && pointer.start === 0) {
             mappings.push({
                 generated: 0,
                 source: 0,
@@ -254,7 +254,7 @@ export function interpolateExpression(
             generatedPos += sourcePointerPrefix.length;
         }
 
-        if (pointer.type == 'property') {
+        if (pointer.type === 'property') {
             generatedContent += normalizedPrefix;
             generatedPos += normalizedPrefix.length;
 
@@ -268,7 +268,7 @@ export function interpolateExpression(
             generatedPos += pointer.text.length;
         }
 
-        if (pointer.type == 'blade') {
+        if (pointer.type === 'blade') {
             generatedContent += bladePlaceholder;
             generatedPos += bladePlaceholder.length;
         }
@@ -325,9 +325,9 @@ export function interpolateForStatement(
     for (let i = 0; i < mappings.length; i++) {
         const mapping = mappings[i];
 
-        if (i == 0) {
+        if (i === 0) {
             mapping.length -= forPrefix.length;
-        } else if (i == mappings.length - 1) {
+        } else if (i === mappings.length - 1) {
             mapping.generated -= forPrefix.length;
             mapping.source -= forPrefix.length;
             mapping.length -= forSuffix.length;

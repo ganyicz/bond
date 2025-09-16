@@ -45,4 +45,9 @@ require('esbuild')
             await ctx.dispose();
             console.log('finished.');
         }
+        return ctx;
+    })
+    .catch((error) => {
+        console.error('Build failed:', error);
+        process.exit(1);
     });

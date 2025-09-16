@@ -35,10 +35,10 @@ export default function Bond(Alpine) {
             const prefixLength = Alpine.prefixed('').length;
             const unprefixed = exp.name.substr(prefixLength);
             const prop =
-                modifiers[1] == 'prop' &&
+                modifiers[1] === 'prop' &&
                 targetComponent &&
                 targetComponent.props.includes(unprefixed);
-            const expAttr = prop ? 'x-prop:' + unprefixed : exp.name;
+            const expAttr = prop ? `x-prop:${unprefixed}` : exp.name;
             const expValue = !['x-ref', 'x-slot', 'x-component'].includes(exp.name)
                 ? `${exp.value}/*bond:${expression}*/`
                 : exp.value;
@@ -68,7 +68,7 @@ export default function Bond(Alpine) {
         });
     }).before('bind');
 
-    Alpine.directive('slot', (el, { expression }, { evaluate }) => {
+    Alpine.directive('slot', (el, { expression }, { _evaluate }) => {
         const parent = Alpine.findClosest(
             el,
             (element) => element.getAttribute('x-component') === expression,
@@ -187,8 +187,9 @@ export default function Bond(Alpine) {
         if (bondExpression) {
             const debug = bondExpression.debug;
             const underline = ' '.repeat(debug.start) + '^'.repeat(bondExpression.value.length);
-            const excerpt =
-                debug.node.indexOf('\n') === -1 ? `${debug.node}\n${underline}` : debug.node + '\n';
+            const excerpt = !debug.node.includes('\n')
+                ? `${debug.node}\n${underline}`
+                : `${debug.node}\n`;
             const location = `at ${debug.file}:${debug.line}`;
 
             const tsFileMatch = error.stack.match(/(resources\/views.*\.ts.*)\n/);
@@ -219,7 +220,7 @@ export default function Bond(Alpine) {
             });
 
             console.warn(
-                `Alpine Expression Error: ${error.message}\n\n${expression ? 'Expression: "' + expression + '"\n\n' : ''}`,
+                `Alpine Expression Error: ${error.message}\n\n${expression ? `Expression: "${expression}"\n\n` : ''}`,
                 el,
             );
         }
