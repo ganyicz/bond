@@ -4,9 +4,7 @@ import type ts from 'typescript';
 import { URI } from 'vscode-uri';
 import { BondVirtualCode } from './virtualCode';
 
-export function createBondLanguagePlugin(
-    ts: typeof import('typescript'),
-): LanguagePlugin<URI> {
+export function createBondLanguagePlugin(ts: typeof import('typescript')): LanguagePlugin<URI> {
     return {
         getLanguageId(uri) {
             if (uri.path.endsWith('.blade.php')) {
@@ -19,7 +17,13 @@ export function createBondLanguagePlugin(
             }
         },
         typescript: {
-            extraFileExtensions: [{ extension: 'blade', isMixedContent: true, scriptKind: 7 satisfies ts.ScriptKind.Deferred }],
+            extraFileExtensions: [
+                {
+                    extension: 'blade',
+                    isMixedContent: true,
+                    scriptKind: 7 satisfies ts.ScriptKind.Deferred,
+                },
+            ],
             getServiceScript() {
                 return undefined;
             },
@@ -33,8 +37,7 @@ export function createBondLanguagePlugin(
                             extension: '.js',
                             scriptKind: 1 satisfies ts.ScriptKind.JS,
                         });
-                    }
-                    else if (code.languageId === 'typescript') {
+                    } else if (code.languageId === 'typescript') {
                         scripts.push({
                             fileName: fileName + '.' + code.id + '.ts',
                             code,
@@ -54,15 +57,15 @@ export function createBondLanguagePlugin(
                             noImplicitThis: true,
                             noImplicitAny: false,
                             paths: {
-                                "@/*": ["./resources/js/*"],
-                                "@resources/*": ["./resources/*"],
-                                "@bond/*": ["./vendor/ganyicz/bond/dist/*"],
+                                '@/*': ['./resources/js/*'],
+                                '@resources/*': ['./resources/*'],
+                                '@bond/*': ['./vendor/ganyicz/bond/dist/*'],
                             },
-                            rootDir: './'
+                            rootDir: './',
                         };
-                    }
+                    },
                 };
             },
         },
-    }
-};
+    };
+}

@@ -1,30 +1,30 @@
-import { expect, test } from 'vitest'
-import { 
-    extractAttributes, 
-    extractPreMount, 
-    extractMountFunction, 
+import { expect, test } from 'vitest';
+import {
+    extractAttributes,
+    extractPreMount,
+    extractMountFunction,
     extractScriptSetupContent,
-} from '../src/parser'
+} from '../src/parser';
 
 test('extracts script setup block', () => {
     const extracted = extractScriptSetupContent(
-`<script setup>
+        `<script setup>
     mount(() => ({}))
 </script>
-`
+`,
     );
-    
+
     expect(extracted).toEqual({
         content: '    mount(() => ({}))',
         start: 15,
         end: 36,
-        length: 21
-    })
-})
+        length: 21,
+    });
+});
 
 test('extracts mount function', () => {
     const extracted = extractMountFunction(
-`<script setup>
+        `<script setup>
     import { Number } from 'types'
     
     mount((props: {
@@ -36,11 +36,11 @@ test('extracts mount function', () => {
         }
     }))
 </script>
-    `)
+    `,
+    );
 
     expect(extracted).toEqual({
-        content:
-`    mount((props: {
+        content: `    mount((props: {
         step: number
     }) => ({
         values: [],
@@ -50,13 +50,13 @@ test('extracts mount function', () => {
     }))`,
         start: 55,
         length: 141,
-        end: 196
-    })
-})
+        end: 196,
+    });
+});
 
 test('extracts code above mount', () => {
-        const extracted = extractPreMount(
-`<script setup>
+    const extracted = extractPreMount(
+        `<script setup>
     import { Number } from 'types'
     import { Value } from 'other-types'
 
@@ -70,11 +70,11 @@ test('extracts code above mount', () => {
         value: 0,
     }))
 </script>
-    `)
+    `,
+    );
 
     expect(extracted).toEqual({
-        content:
-`    import { Number } from 'types'
+        content: `    import { Number } from 'types'
     import { Value } from 'other-types'
 
     interace Props {
@@ -82,19 +82,19 @@ test('extracts code above mount', () => {
     }`,
         start: 15,
         length: 123,
-        end: 138
-    })
-})
+        end: 138,
+    });
+});
 
 test('extracts HTML attributes', () => {
     const attributes = extractAttributes(
-`<div x-data="{disabled: false}">
+        `<div x-data="{disabled: false}">
     <div x-show="disabled" x-on:click="() => {
          console.log('test')
     }">
     </div>
-</div>`
-    )
+</div>`,
+    );
 
     expect(attributes).toEqual([
         {
@@ -107,8 +107,8 @@ test('extracts HTML attributes', () => {
                 length: 17,
             },
             line: 1,
-            nodeRange: [0,134],
-            startTagRange: [0,32],
+            nodeRange: [0, 134],
+            startTagRange: [0, 32],
         },
         {
             depth: 2,
@@ -120,15 +120,14 @@ test('extracts HTML attributes', () => {
                 length: 8,
             },
             line: 2,
-            nodeRange: [37,127],
-            startTagRange: [37,116],
+            nodeRange: [37, 127],
+            startTagRange: [37, 116],
         },
         {
             depth: 2,
             name: 'x-on:click',
             code: {
-                content: 
-`() => {
+                content: `() => {
          console.log('test')
     }`,
                 start: 72,
@@ -136,18 +135,18 @@ test('extracts HTML attributes', () => {
                 length: 42,
             },
             line: 2,
-            nodeRange: [37,127],
-            startTagRange: [37,116],
-        }
-    ])
-})
+            nodeRange: [37, 127],
+            startTagRange: [37, 116],
+        },
+    ]);
+});
 
 test('extracts HTML attributes from inside template', () => {
     const attributes = extractAttributes(
-`<template>
+        `<template>
     <div x-on:click="value++"></div>
-</template>`
-    )
+</template>`,
+    );
 
     expect(attributes).toEqual([
         {
@@ -160,28 +159,25 @@ test('extracts HTML attributes from inside template', () => {
                 length: 7,
             },
             line: 2,
-            nodeRange: [15,47],
-            startTagRange: [15,41],
+            nodeRange: [15, 47],
+            startTagRange: [15, 41],
         },
-    ])
-})
+    ]);
+});
 
 test('doesnt extract empty HTML attributes', () => {
+    const attributes = extractAttributes(`<div x-slot></div>`);
+
+    expect(attributes).toEqual([]);
+});
+
+test('extracts HTML attributes with blade', { skip: true }, () => {
     const attributes = extractAttributes(
-`<div x-slot></div>`
-    )
-
-    expect(attributes).toEqual([])
-})
-
-
-test('extracts HTML attributes with blade', {skip: true}, () => {
-    const attributes = extractAttributes(
-`<div
+        `<div
     {{ $attributes->class([]) }}
     x-on:click="value++"
-></div>`
-    )
+></div>`,
+    );
 
     expect(attributes).toEqual([
         {
@@ -194,8 +190,8 @@ test('extracts HTML attributes with blade', {skip: true}, () => {
                 length: 7,
             },
             line: 3,
-            nodeRange: [0,59],
-            startTagRange: [0,52],
+            nodeRange: [0, 59],
+            startTagRange: [0, 52],
         },
-    ])
-})
+    ]);
+});

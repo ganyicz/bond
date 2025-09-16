@@ -26,10 +26,15 @@ function setupDirectories() {
 
 function cloneRepositories(livewireTag) {
     console.log(`Cloning Livewire ${livewireTag}...`);
-    execSync(`git clone --depth 1 --branch ${livewireTag} https://github.com/livewire/livewire.git ${LIVEWIRE_DIR}`, { stdio: 'inherit' });
-    
+    execSync(
+        `git clone --depth 1 --branch ${livewireTag} https://github.com/livewire/livewire.git ${LIVEWIRE_DIR}`,
+        { stdio: 'inherit' },
+    );
+
     console.log('Cloning Alpine.js fork...');
-    execSync(`git clone --depth 1 https://github.com/ganyicz/alpine.git ${ALPINE_DIR}`, { stdio: 'inherit' });
+    execSync(`git clone --depth 1 https://github.com/ganyicz/alpine.git ${ALPINE_DIR}`, {
+        stdio: 'inherit',
+    });
 }
 
 function buildAlpine() {
@@ -42,17 +47,17 @@ function updateLivewirePackageJson() {
     console.log('Updating Livewire package.json...');
     const packageJsonPath = join(LIVEWIRE_DIR, 'package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-    
+
     // Replace alpinejs dependency with path to our fork
     packageJson.dependencies.alpinejs = `file:../alpine/packages/alpinejs`;
-    
+
     writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 }
 
 function buildLivewire() {
     console.log('Installing Livewire dependencies...');
     execSync('npm install', { cwd: LIVEWIRE_DIR, stdio: 'inherit' });
-    
+
     console.log('Building Livewire...');
     execSync('npm run build', { cwd: LIVEWIRE_DIR, stdio: 'inherit' });
 }
@@ -61,7 +66,7 @@ function copyBuiltFiles() {
     console.log('Copying built files to dist...');
     const livewireDistDir = join(LIVEWIRE_DIR, 'dist');
     const outputDistDir = join('../', 'dist');
-    
+
     // Copy all files from Livewire dist to our dist
     execSync(`cp ${livewireDistDir}/livewire.esm.js ${outputDistDir}`, { stdio: 'inherit' });
     execSync(`cp ${livewireDistDir}/livewire.esm.js.map ${outputDistDir}`, { stdio: 'inherit' });
@@ -70,7 +75,7 @@ function copyBuiltFiles() {
 async function main() {
     try {
         const livewireTag = await getLatestLivewireRelease();
-        
+
         setupDirectories();
         cloneRepositories(livewireTag);
         buildAlpine();
@@ -78,7 +83,7 @@ async function main() {
         buildLivewire();
         copyBuiltFiles();
         cleanupTemp();
-        
+
         console.log('✅ Livewire build completed successfully!');
     } catch (error) {
         cleanupTemp();

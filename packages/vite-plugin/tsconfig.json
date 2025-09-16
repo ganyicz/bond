@@ -1,9 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES2023",
-        "lib": [
-            "ES2023"
-        ],
+        "lib": ["ES2023"],
         "module": "commonjs",
         "moduleResolution": "node",
         "esModuleInterop": true,
@@ -12,10 +10,6 @@
         "outDir": "dist",
         "rootDir": "src"
     },
-    "include": [
-        "src"
-    ],
-    "exclude": [
-        "node_modules",
-    ]
+    "include": ["src"],
+    "exclude": ["node_modules"]
 }

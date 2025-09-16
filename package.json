@@ -1,0 +1,36 @@
+{
+    "name": "bond",
+    "version": "0.0.5",
+    "description": "Bond brings modern component authoring to Laravel Blade and Alpine.js",
+    "homepage": "https://github.com/ganyicz/bond#readme",
+    "bugs": {
+        "url": "https://github.com/ganyicz/bond/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ganyicz/bond.git"
+    },
+    "license": "MIT",
+    "author": "Filip Ganyicz",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prepare": "husky",
+        "formatter": "prettier --write \"packages/**/*.{js,ts,json}\" \"scripts/**/*.{js,ts,json}\"",
+        "formatter:check": "prettier --check \"packages/**/*.{js,ts,json}\" \"scripts/**/*.{js,ts,json}\""
+    },
+    "devDependencies": {
+        "husky": "^9.1.7",
+        "lint-staged": "^16.1.6",
+        "prettier": "3.6.2"
+    },
+    "lint-staged": {
+        "packages/**/*.{js,ts,json}": [
+            "prettier --write"
+        ],
+        "scripts/**/*.{js,ts,json}": [
+            "prettier --write"
+        ]
+    }
+}

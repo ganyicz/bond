@@ -1,9 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES2024",
-        "lib": [
-            "ES2024"
-        ],
+        "lib": ["ES2024"],
         "module": "commonjs",
         "moduleResolution": "node",
         "esModuleInterop": true,
@@ -12,11 +10,6 @@
         "outDir": "dist",
         "rootDir": "src"
     },
-    "include": [
-        "src"
-    ],
-    "exclude": [
-        "node_modules",
-        ".vscode-test"
-    ]
+    "include": ["src"],
+    "exclude": ["node_modules", ".vscode-test"]
 }
