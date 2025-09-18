@@ -10,9 +10,9 @@ const options = {
 };
 
 if (process.argv.includes('--watch')) {
-    const ctx = await esbuild.context(options)
-    await ctx.watch()
+    const ctx = await esbuild.context(options);
+    await ctx.watch();
     console.log('watching...');
 } else {
-    await esbuild.build(options)
+    await esbuild.build(options);
 }

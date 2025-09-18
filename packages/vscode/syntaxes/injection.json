@@ -1,9 +1,7 @@
 {
     "scopeName": "text.html.bond.attribute",
     "injectionSelector": "L:text.html.php.blade -comment -meta.function.echo.blade -source.js -source.php",
-    "patterns": [
-        { "include": "#alpine-attributes" }
-    ],
+    "patterns": [{ "include": "#alpine-attributes" }],
     "repository": {
         "alpine-attributes": {
             "name": "meta.attribute.alpine",
@@ -28,9 +26,7 @@
                     "endCaptures": {
                         "0": { "name": "punctuation.definition.string.end.html" }
                     },
-                    "patterns": [
-                        { "include": "source.js#expression" }
-                    ]
+                    "patterns": [{ "include": "source.js#expression" }]
                 },
                 {
                     "contentName": "meta.embedded.inline.alpinejs",
@@ -57,9 +53,7 @@
                     "endCaptures": {
                         "0": { "name": "punctuation.definition.string.end.html" }
                     },
-                    "patterns": [
-                        { "include": "source.js#expression" }
-                    ]
+                    "patterns": [{ "include": "source.js#expression" }]
                 },
                 {
                     "contentName": "meta.embedded.inline.alpinejs",
@@ -71,9 +65,7 @@
                     "endCaptures": {
                         "0": { "name": "punctuation.section.embedded.end.html" }
                     },
-                    "patterns": [
-                        { "include": "source.js#expression" }
-                    ]
+                    "patterns": [{ "include": "source.js#expression" }]
                 }
             ]
         }

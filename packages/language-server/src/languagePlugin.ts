@@ -4,9 +4,7 @@ import type ts from 'typescript';
 import { URI } from 'vscode-uri';
 import { BondVirtualCode } from './virtualCode';
 
-export function createBondLanguagePlugin(
-    ts: typeof import('typescript'),
-): LanguagePlugin<URI> {
+export function createBondLanguagePlugin(ts: typeof import('typescript')): LanguagePlugin<URI> {
     return {
         getLanguageId(uri) {
             if (uri.path.endsWith('.blade.php')) {
@@ -19,27 +17,30 @@ export function createBondLanguagePlugin(
             }
         },
         typescript: {
-            extraFileExtensions: [{ extension: 'blade', isMixedContent: true, scriptKind: 7 satisfies ts.ScriptKind.Deferred }],
+            extraFileExtensions: [
+                {
+                    extension: 'blade',
+                    isMixedContent: true,
+                    scriptKind: 7 satisfies ts.ScriptKind.Deferred,
+                },
+            ],
             getServiceScript() {
-                return undefined;
+                return;
             },
             getExtraServiceScripts(fileName, root) {
                 const scripts: TypeScriptExtraServiceScript[] = [];
                 for (const code of forEachEmbeddedCode(root)) {
                     if (code.languageId === 'javascript') {
                         scripts.push({
-                            fileName: fileName + '.' + code.id + '.js',
+                            fileName: `${fileName}.${code.id}.js`,
                             code,
-                            extension: '.js',
-                            scriptKind: 1 satisfies ts.ScriptKind.JS,
+                            sourceMap: undefined,
                         });
-                    }
-                    else if (code.languageId === 'typescript') {
+                    } else if (code.languageId === 'typescript') {
                         scripts.push({
-                            fileName: fileName + '.' + code.id + '.ts',
+                            fileName: `${fileName}.${code.id}.ts`,
                             code,
-                            extension: '.ts',
-                            scriptKind: 3 satisfies ts.ScriptKind.TS,
+                            sourceMap: undefined,
                         });
                     }
                 }
@@ -54,15 +55,15 @@ export function createBondLanguagePlugin(
                             noImplicitThis: true,
                             noImplicitAny: false,
                             paths: {
-                                "@/*": ["./resources/js/*"],
-                                "@resources/*": ["./resources/*"],
-                                "@bond/*": ["./vendor/ganyicz/bond/dist/*"],
+                                '@/*': ['./resources/js/*'],
+                                '@resources/*': ['./resources/*'],
+                                '@bond/*': ['./vendor/ganyicz/bond/dist/*'],
                             },
-                            rootDir: './'
+                            rootDir: './',
                         };
-                    }
+                    },
                 };
             },
         },
-    }
-};
+    };
+}

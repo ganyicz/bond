@@ -1,33 +1,33 @@
 {
-  "name": "@bond/language-server",
-  "version": "0.0.3",
-  "description": "Language server for Bond components",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+    "name": "@bond/language-server",
+    "version": "0.0.3",
+    "description": "Language server for Bond components",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "build": "node esbuild.config.js && tsc --emitDeclarationOnly --outDir dist",
+        "dev": "node esbuild.config.js --watch",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@bond/language-core": "file:../language-core",
+        "@volar/language-core": "~2.4.0",
+        "@volar/language-server": "~2.4.0",
+        "@volar/typescript": "~2.4.0",
+        "volar-service-typescript": "volar-2.4",
+        "alien-signals": "^2.0.6",
+        "vscode-html-languageservice": "^5.3.1",
+        "vscode-uri": "^3.0.8"
+    },
+    "devDependencies": {
+        "esbuild": "^0.23.0",
+        "vitest": "^2.0.0"
     }
-  },
-  "scripts": {
-    "build": "node esbuild.config.js && tsc --emitDeclarationOnly --outDir dist",
-    "dev": "node esbuild.config.js --watch",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@bond/language-core": "file:../language-core",
-    "@volar/language-core": "~2.4.0",
-    "@volar/language-server": "~2.4.0",
-    "@volar/typescript": "~2.4.0",
-    "volar-service-typescript": "volar-2.4",
-    "alien-signals": "^2.0.6",
-    "vscode-html-languageservice": "^5.3.1",
-    "vscode-uri": "^3.0.8"
-  },
-  "devDependencies": {
-    "esbuild": "^0.23.0",
-    "vitest": "^2.0.0"
-  }
 }

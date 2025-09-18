@@ -1,30 +1,43 @@
-import ts from 'typescript'
+import ts from 'typescript';
 
-import { generate } from '../src/utils/codegen'
-import { expect, test } from 'vitest'
+import { generate } from '../src/utils/codegen';
+import { expect, test } from 'vitest';
 
 test('generates code from input', () => {
-    const generated = [...generate(
-`<div x-data="{disabled: false}">
+    const generated = [
+        ...generate(
+            `<div x-data="{disabled: false}">
     <div x-show="disabled"></div>
-</div>`, ts)];
-})
+</div>`,
+            ts,
+        ),
+    ];
+
+    expect(ts(generated)).toMatchSnapshot();
+});
 
 test('generates for statement', () => {
-    const generated = [...generate(
-`<div x-data="{}">
+    const generated = [
+        ...generate(
+            `<div x-data="{}">
     <div x-for="item in items">
         <div x-show="item.completed"></div>
     </div>
     <div>
         <div x-show="item.completed"></div>
     </div>
-</div>`, ts)];
-})
+</div>`,
+            ts,
+        ),
+    ];
+
+    expect(ts(generated)).toMatchSnapshot();
+});
 
 test('handles scopes', () => {
-    const generated = [...generate(
-`<script setup>
+    const generated = [
+        ...generate(
+            `<script setup>
     mount(() => ({
         items: [{
             completed: false,
@@ -35,11 +48,14 @@ test('handles scopes', () => {
 <div x-data="{display: false}">
     <div x-data="{disabled: true}">
         <div x-for="item of items">
-            
+
         </div>
     </div>
 </div>
-`, ts)];
+`,
+            ts,
+        ),
+    ];
 
-    debugger;
-})
+    expect(ts(generated)).toMatchSnapshot();
+});

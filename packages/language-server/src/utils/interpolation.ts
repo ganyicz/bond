@@ -1,5 +1,5 @@
 import type ts from 'typescript';
-import { allCodeFeatures, type Mapping } from './shared'
+import { allCodeFeatures, type Mapping } from './shared';
 
 export interface InterpolatedExpression {
     content: string;
@@ -7,91 +7,140 @@ export interface InterpolatedExpression {
 }
 
 interface Identifier {
-    start: number,
-    end: number,
-    text: string,
+    start: number;
+    end: number;
+    text: string;
 }
 
-export function interpolateExpression(content: string, prefix: string, ts: typeof import('typescript'), scopeVars?: string[]|undefined): InterpolatedExpression {
-    const bladePlaceholder = '__BLADE__'
-    const normalizedPrefix = prefix.endsWith('.') ? prefix : prefix + '.';
+export function interpolateExpression(
+    content: string,
+    prefix: string,
+    ts: typeof import('typescript'),
+    scopeVars?: string[] | undefined,
+): InterpolatedExpression {
+    const bladePlaceholder = '__BLADE__';
+    const normalizedPrefix = prefix.endsWith('.') ? prefix : `${prefix}.`;
 
-    if (content.length == 0) {
+    if (content.length === 0) {
         return {
             content: normalizedPrefix,
-            mappings: [{
-                generated: normalizedPrefix.length,
-                source: 0,
-                length: 0,
-                features: allCodeFeatures
-            }]
-        }
+            mappings: [
+                {
+                    generated: normalizedPrefix.length,
+                    source: 0,
+                    length: 0,
+                    features: allCodeFeatures,
+                },
+            ],
+        };
     }
 
     let processedContent = content;
 
-    const bladeExpressions = extractBladeExpressions(content)
-    
+    const bladeExpressions = extractBladeExpressions(content);
+
     // Replace blade expressions with __BLADE__ placeholder
     let bladeReplacementOffset = 0;
     for (const expr of bladeExpressions) {
         const start = expr.start + bladeReplacementOffset;
         const end = expr.end + bladeReplacementOffset;
 
-        processedContent = processedContent.slice(0, start) + bladePlaceholder + processedContent.slice(end);
+        processedContent =
+            processedContent.slice(0, start) + bladePlaceholder + processedContent.slice(end);
         bladeReplacementOffset += bladePlaceholder.length - (end - start);
     }
 
-    const isObjectExpression = processedContent.trim().startsWith('{') && processedContent.trim().endsWith('}');
-    
+    const isObjectExpression =
+        processedContent.trim().startsWith('{') && processedContent.trim().endsWith('}');
+
     const sourceFile = ts.createSourceFile(
         'temp.ts',
         isObjectExpression ? `(${processedContent})` : processedContent,
         ts.ScriptTarget.Latest,
-        true
+        true,
     );
-    
+
     // Global identifiers that should not be prefixed
     const globals = new Set([
-        'Array', 'Boolean', 'Date', 'decodeURI', 'decodeURIComponent', 'encodeURI',
-        'encodeURIComponent', 'Error', 'eval', 'EvalError', 'Function', 'isFinite',
-        'isNaN', 'JSON', 'Math', 'Number', 'Object', 'parseInt', 'parseFloat',
-        'RangeError', 'ReferenceError', 'RegExp', 'String', 'SyntaxError',
-        'TypeError', 'URIError', 'console', 'Infinity', 'NaN', 'undefined',
-        'Intl', 'BigInt', 'Map', 'Set'
+        'Array',
+        'Boolean',
+        'Date',
+        'decodeURI',
+        'decodeURIComponent',
+        'encodeURI',
+        'encodeURIComponent',
+        'Error',
+        'eval',
+        'EvalError',
+        'Function',
+        'isFinite',
+        'isNaN',
+        'JSON',
+        'Math',
+        'Number',
+        'Object',
+        'parseInt',
+        'parseFloat',
+        'RangeError',
+        'ReferenceError',
+        'RegExp',
+        'String',
+        'SyntaxError',
+        'TypeError',
+        'URIError',
+        'console',
+        'Infinity',
+        'NaN',
+        'undefined',
+        'Intl',
+        'BigInt',
+        'Map',
+        'Set',
     ]);
-    
+
     // Literals that should not be prefixed
     const literals = new Set(['true', 'false', 'null', 'this']);
-    
-    // Collect all identifiers (both to prefix and blade placeholders)
-    const properties: Identifier[] = []
 
-    let tsOffset = isObjectExpression ? -1 : 0
-    let bladeExpressionsIndex = 0
-    
+    // Collect all identifiers (both to prefix and blade placeholders)
+    const properties: Identifier[] = [];
+
+    let tsOffset = isObjectExpression ? -1 : 0;
+    let bladeExpressionsIndex = 0;
+
     function walkNode(node: ts.Node, functionScopes: Set<string>[] = []) {
-        if (ts.isIdentifier(node) || ts.isStringLiteralLike(node) && node.text.indexOf(bladePlaceholder) !== undefined) {
+        if (
+            ts.isIdentifier(node) ||
+            (ts.isStringLiteralLike(node) && node.text.indexOf(bladePlaceholder) !== undefined)
+        ) {
             const replacementsCount = node.text.split(bladePlaceholder).length - 1;
 
             for (let i = 0; i < replacementsCount; i++) {
-                tsOffset += bladeExpressions[bladeExpressionsIndex].text.length - bladePlaceholder.length
-                bladeExpressionsIndex++
+                tsOffset +=
+                    bladeExpressions[bladeExpressionsIndex].text.length - bladePlaceholder.length;
+                bladeExpressionsIndex++;
             }
         }
         if (ts.isIdentifier(node)) {
             const text = node.text;
-            const isLocal = functionScopes.some(scope => scope.has(text)) || (scopeVars && scopeVars.indexOf(text) !== -1)
-            
+            const isLocal =
+                functionScopes.some((scope) => scope.has(text)) ||
+                (scopeVars && scopeVars.includes(text));
+
             // Check if this identifier is an object property key
             const parent = node.parent;
 
-            const isObjectPropertyKey = parent && (
-                (ts.isPropertyAssignment(parent) && parent.name === node) ||
-                (ts.isShorthandPropertyAssignment(parent) && parent.name === node)
-            );
-            
-            if (text !== bladePlaceholder && !globals.has(text) && !literals.has(text) && !isLocal && !isObjectPropertyKey) {
+            const isObjectPropertyKey =
+                parent &&
+                ((ts.isPropertyAssignment(parent) && parent.name === node) ||
+                    (ts.isShorthandPropertyAssignment(parent) && parent.name === node));
+
+            if (
+                text !== bladePlaceholder &&
+                !globals.has(text) &&
+                !literals.has(text) &&
+                !isLocal &&
+                !isObjectPropertyKey
+            ) {
                 properties.push({
                     start: node.getStart(sourceFile) + tsOffset,
                     end: node.getEnd() + tsOffset,
@@ -109,7 +158,7 @@ export function interpolateExpression(content: string, prefix: string, ts: typeo
                     newScope.add(param.name.text);
                 }
             }
-            
+
             const newScopes = [...functionScopes, newScope];
             if (node.body) {
                 walkNode(node.body, newScopes);
@@ -133,108 +182,111 @@ export function interpolateExpression(content: string, prefix: string, ts: typeo
             }
         } else {
             // Walk all children
-            ts.forEachChild(node, child => walkNode(child, functionScopes));
+            ts.forEachChild(node, (child) => walkNode(child, functionScopes));
         }
     }
-    
+
     walkNode(sourceFile);
-    
+
     // Build result and mappings using unified approach
     const pointers: (Identifier & { type: string })[] = [
-        ...properties.map(property => ({ ...property, type: 'property' })),
-        ...bladeExpressions.map(expression => ({ ...expression, type: 'blade' })),
+        ...properties.map((property) => ({ ...property, type: 'property' })),
+        ...bladeExpressions.map((expression) => ({ ...expression, type: 'blade' })),
     ].sort((a, b) => a.start - b.start);
 
-    if (pointers.length == 0) {
+    if (pointers.length === 0) {
         return {
             content: content,
-            mappings: [{
-                source: 0,
-                generated: 0,
-                length: content.length,
-            }],
-        }
+            mappings: [
+                {
+                    source: 0,
+                    generated: 0,
+                    length: content.length,
+                },
+            ],
+        };
     }
-    
+
     let sourcePos = 0;
     let generatedPos = 0;
-    let generatedContent = ''
+    let generatedContent = '';
 
     const mappings: Mapping[] = [];
 
     let lastMapping: Mapping | undefined;
 
     const addMapping = (mapping: Mapping) => {
-        if (lastMapping &&
+        if (
+            lastMapping &&
             lastMapping.source + lastMapping.length === mapping.source &&
             lastMapping.generated + lastMapping.length === mapping.generated
         ) {
-            lastMapping.length += mapping.length
+            lastMapping.length += mapping.length;
         } else {
-            mappings.push(mapping)
+            mappings.push(mapping);
 
-            lastMapping = mapping
+            lastMapping = mapping;
         }
-    }
+    };
 
     for (let i = 0; i < pointers.length; i++) {
         const pointer = pointers[i];
 
-        if (i == 0 && pointer.start == 0) {
+        if (i === 0 && pointer.start === 0) {
             mappings.push({
                 generated: 0,
                 source: 0,
                 length: 0,
-                features: { verification: true }
-            })
+                features: { verification: true },
+            });
         }
 
         if (sourcePos < pointer.start) {
-            const sourcePointerPrefix = content.slice(sourcePos, pointer.start)
+            const sourcePointerPrefix = content.slice(sourcePos, pointer.start);
 
             addMapping({
                 source: sourcePos,
                 generated: generatedPos,
                 length: sourcePointerPrefix.length,
-            })
+            });
 
-            generatedContent += sourcePointerPrefix
-            generatedPos += sourcePointerPrefix.length
+            generatedContent += sourcePointerPrefix;
+            generatedPos += sourcePointerPrefix.length;
         }
 
-        if (pointer.type == 'property') {
-            generatedContent += normalizedPrefix
-            generatedPos += normalizedPrefix.length
+        if (pointer.type === 'property') {
+            generatedContent += normalizedPrefix;
+            generatedPos += normalizedPrefix.length;
 
             addMapping({
                 source: pointer.start,
                 generated: generatedPos,
                 length: pointer.text.length,
-            })
+            });
 
-            generatedContent += pointer.text
-            generatedPos += pointer.text.length
+            generatedContent += pointer.text;
+            generatedPos += pointer.text.length;
         }
 
-        if (pointer.type == 'blade') {
-            generatedContent += bladePlaceholder
-            generatedPos += bladePlaceholder.length
+        if (pointer.type === 'blade') {
+            generatedContent += bladePlaceholder;
+            generatedPos += bladePlaceholder.length;
         }
 
-        sourcePos = pointer.end
+        sourcePos = pointer.end;
     }
-    
+
     if (sourcePos < content.length) {
-        const contentSuffix = content.slice(sourcePos, content.length)
+        const contentSuffix = content.slice(sourcePos, content.length);
 
         addMapping({
             source: sourcePos,
             generated: generatedPos,
             length: contentSuffix.length,
-        })
+        });
 
-        generatedContent += contentSuffix
-        generatedPos += contentSuffix.length
+        generatedContent += contentSuffix;
+        generatedPos += contentSuffix.length;
     }
 
     if (lastMapping && lastMapping.source + lastMapping.length !== content.length) {
@@ -242,50 +294,60 @@ export function interpolateExpression(content: string, prefix: string, ts: typeo
             source: sourcePos,
             generated: generatedPos,
             length: 0,
-            features: { verification: true }
-        })
+            features: { verification: true },
+        });
     }
-    
+
     return {
         content: generatedContent,
-        mappings: mappings
+        mappings: mappings,
     };
 }
 
-export function interpolateForStatement(content: string, prefix: string, ts: typeof import('typescript'), scopeVars?: string[]): InterpolatedExpression {
-    const forPrefix = 'for (const '
-    const forSuffix = ') {}'
+export function interpolateForStatement(
+    content: string,
+    prefix: string,
+    ts: typeof import('typescript'),
+    scopeVars?: string[],
+): InterpolatedExpression {
+    const forPrefix = 'for (const ';
+    const forSuffix = ') {}';
 
-    const interpolated = interpolateExpression(forPrefix + content + forSuffix, prefix, ts, scopeVars)
+    const interpolated = interpolateExpression(
+        forPrefix + content + forSuffix,
+        prefix,
+        ts,
+        scopeVars,
+    );
 
-    const mappings = interpolated.mappings
+    const mappings = interpolated.mappings;
 
     for (let i = 0; i < mappings.length; i++) {
-        const mapping = mappings[i]
+        const mapping = mappings[i];
 
-        if (i == 0) {
-            mapping.length -= forPrefix.length
-        } else if (i == mappings.length - 1) {
-            mapping.generated -= forPrefix.length
-            mapping.source -= forPrefix.length
-            mapping.length -= forSuffix.length
+        if (i === 0) {
+            mapping.length -= forPrefix.length;
+        } else if (i === mappings.length - 1) {
+            mapping.generated -= forPrefix.length;
+            mapping.source -= forPrefix.length;
+            mapping.length -= forSuffix.length;
         } else {
-            mapping.generated -= forPrefix.length
-            mapping.source -= forPrefix.length
+            mapping.generated -= forPrefix.length;
+            mapping.source -= forPrefix.length;
         }
     }
 
     return {
         content: interpolated.content.slice(forPrefix.length, -forSuffix.length),
         mappings,
-    }
+    };
 }
 
 function extractBladeExpressions(content: string): Identifier[] {
     const bladeReplacements: Identifier[] = [];
 
     let match;
-    
+
     // Find blade expressions {{ ... }}
     const exprRegex = /\{\{[\s\S]*?\}\}/g;
     while ((match = exprRegex.exec(content)) !== null) {
@@ -295,7 +357,7 @@ function extractBladeExpressions(content: string): Identifier[] {
             text: match[0],
         });
     }
-    
+
     // Find blade directives @js(...) or @json(...)
     const directiveRegex = /@(js|json)\(([\s\S]*?)\)/g;
     while ((match = directiveRegex.exec(content)) !== null) {
@@ -305,9 +367,9 @@ function extractBladeExpressions(content: string): Identifier[] {
             text: match[0],
         });
     }
-    
+
     // Sort by position (reverse order for replacement)
     bladeReplacements.sort((a, b) => a.start - b.start);
 
-    return bladeReplacements
+    return bladeReplacements;
 }

@@ -1,5 +1,6 @@
 vendor
+.idea
 .DS_Store
 node_modules
-package-lock.json
+packages/**/package-lock.json
 *.tsbuildinfo

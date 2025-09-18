@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+/dist/
+/packages/*/dist/
+/scripts/**/dist/
+/build/
+/coverage/
+
+# Example/sample artifacts
+/sample/node_modules/
+/sample/dist/
+
+# IDE/OS/tooling
+/.idea/
+/.husky/
+/.git/
+/.cache/
+.tmp/
+tmp/
+.DS_Store
+
+# Lockfiles (generated)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+composer.lock
+
+# Minified bundles
+*.min.js
+*.min.mjs
+*.min.css

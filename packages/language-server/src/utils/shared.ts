@@ -13,5 +13,5 @@ export interface Mapping {
     generated: number;
     source: number;
     length: number;
-    features?: CodeInformation
+    features?: CodeInformation;
 }

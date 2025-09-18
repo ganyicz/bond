@@ -1,14 +1,19 @@
-import { createConnection, createServer, createTypeScriptProject, loadTsdkByPath } from '@volar/language-server/node';
+import {
+    createConnection,
+    createServer,
+    createTypeScriptProject,
+    loadTsdkByPath,
+} from '@volar/language-server/node';
 import { create as createTypeScriptServices } from 'volar-service-typescript';
 import { createBondLanguagePlugin } from './languagePlugin';
-import path from 'path';
+import path from 'node:path';
 
 const connection = createConnection();
 const server = createServer(connection);
 
 connection.listen();
 
-connection.onInitialize(params => {
+connection.onInitialize((params) => {
     const tsdk = loadTsdkByPath(params.initializationOptions.typescript.tsdk, params.locale);
 
     return server.initialize(
@@ -18,28 +23,24 @@ connection.onInitialize(params => {
             setup({ project }) {
                 const { languageServiceHost } = project.typescript!;
 
-                const getScriptFileNames = languageServiceHost.getScriptFileNames.bind(languageServiceHost);
+                const getScriptFileNames =
+                    languageServiceHost.getScriptFileNames.bind(languageServiceHost);
 
                 languageServiceHost.getScriptFileNames = () => {
                     return [
                         ...getScriptFileNames(),
-                        path.resolve('./vendor/ganyicz/bond/dist/types.d.ts')
-                    ]
-                }
+                        path.resolve('./vendor/ganyicz/bond/dist/types.d.ts'),
+                    ];
+                };
             },
         })),
-        [
-            ...createTypeScriptServices(tsdk.typescript),
-        ],
-    )
+        [...createTypeScriptServices(tsdk.typescript)],
+    );
 });
 
 connection.onInitialized(() => {
-    server.initialized()
-    server.fileWatcher.watchFiles([
-        '**/*.ts',
-        '**/*.js'
-    ])
+    server.initialized();
+    server.fileWatcher.watchFiles(['**/*.ts', '**/*.js']);
 });
 
 connection.onShutdown(server.shutdown);

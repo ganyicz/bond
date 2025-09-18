@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ganyicz\Bond;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\ServiceProvider;
 
 class BondServiceProvider extends ServiceProvider
 {
@@ -46,8 +48,7 @@ class BondServiceProvider extends ServiceProvider
                                 ->all()
                         );
                         @endphp
-                        BLADE
-                    ;
+                        BLADE;
                 },
                 $value
             );
