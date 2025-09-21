@@ -16,7 +16,6 @@ composer require ganyicz/bond
 Next, add the following lines to your `resources/js/app.js` file. Bond will compile all scripts extracted from your Blade files here.
 
 ```diff
-import './bootstrap';
 + import '../../vendor/ganyicz/bond/js/alpine';
 + import 'virtual:bond';
 ```
@@ -24,9 +23,11 @@ import './bootstrap';
 Finally, update your `vite.config.js` to register Bond:
 
 ```diff
-import { defineConfig } from 'vite';
+import {
+    defineConfig
+} from 'vite';
 import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
+import tailwindcss from "@tailwindcss/vite";
 + import bond from './vendor/ganyicz/bond/dist/vite-plugin';
 
 export default defineConfig({
@@ -38,7 +39,9 @@ export default defineConfig({
         tailwindcss(),
 +       bond(),
     ],
-    ...
+    server: {
+        cors: true,
+    },
 });
 ```
 
