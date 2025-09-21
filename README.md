@@ -22,7 +22,7 @@ import 'virtual:bond';
 
 Finally, update your `vite.config.js` to register Bond:
 
-```js
+```diff
 import {
     defineConfig
 } from 'vite';
