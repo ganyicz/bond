@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
-import { resolve, join, sep, relative } from 'path';
+import { resolve, join, relative } from 'path';
 import { normalizePath } from 'vite';
 
 export default function bond(options = {}) {
