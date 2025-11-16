@@ -1,5 +1,6 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
-import { resolve, join } from "path";
+import { resolve, relative, join } from "path";
+import { normalizePath } from "vite";
 function bond(options = {}) {
   const {
     viewsPath = "resources/views",
@@ -37,8 +38,7 @@ function bond(options = {}) {
     return match ? match[1].trim() : null;
   }
   function generateComponentName(viewsPath2, filePath) {
-    const relativePath = filePath.replace(resolve(viewsPath2), "").replace(/^\//, "").replace(/\.blade\.php$/, "").replace(/\//g, ".");
-    return relativePath;
+    return filePath.slice(1).replace(viewsPath2 + "/", "").replace(/\.blade\.php$/, "").split("/").join(".");
   }
   function extractPropNames(code) {
     const typeMatch = code.match(/props\s*:\s*{([^}]*)}/s);
@@ -67,7 +67,8 @@ function bond(options = {}) {
       if (virtualModule) {
         server.reloadModule(virtualModule);
       }
-      const cleanPath = filePath.replace(/\.blade\.php$/, "");
+      const relativePath = relative(resolve(viewsPath), filePath);
+      const cleanPath = normalizePath(relativePath.replace(/\.blade\.php$/, ""));
       const virtualScriptPath = `${cleanPath}.ts?bond`;
       const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
       if (scriptModule) {
@@ -123,7 +124,7 @@ function bond(options = {}) {
         return resolvedVirtualModuleId;
       }
       if (id === "bond") {
-        return resolve(process.cwd(), "vendor/ganyicz/bond/js/bond.js");
+        return resolve(process.cwd(), join("vendor", "ganyicz", "bond", "js", "bond.js"));
       }
       if (isBladeScriptRequest(id)) {
         return id;
@@ -139,9 +140,10 @@ function bond(options = {}) {
             const content = readFileSync(filePath, "utf-8");
             const script = extractScriptSetup(content);
             if (script) {
-              const cleanPath = filePath.replace(/\.blade\.php$/, "");
+              const relativePath = relative(process.cwd(), filePath);
+              const cleanPath = normalizePath(relativePath).replace(/\.blade\.php$/, "");
               const virtualPath = `${cleanPath}.ts?bond`;
-              imports.push(`import '${virtualPath}';`);
+              imports.push(`import '/${virtualPath}';`);
             }
           } catch (error) {
             console.warn(`[bond] Error processing ${filePath}:`, error.message);
@@ -154,7 +156,8 @@ function bond(options = {}) {
         const { filename } = parseBladeRequest(id);
         try {
           const actualFilename = filename.replace(/\.ts$/, ".blade.php");
-          const content = readFileSync(actualFilename, "utf-8");
+          const path = join(process.cwd(), actualFilename);
+          const content = readFileSync(path, "utf-8");
           const script = extractScriptSetup(content);
           if (script) {
             const transformedScript = transformMountCalls(script, actualFilename);

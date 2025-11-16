@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
-import { resolve, join } from 'path';
+import { resolve, join, sep, relative } from 'path';
+import { normalizePath } from 'vite';
 
 export default function bond(options = {}) {
   const {
@@ -58,13 +59,11 @@ export default function bond(options = {}) {
    * Generate component name from file path
    */
   function generateComponentName(viewsPath, filePath) {
-    const relativePath = filePath
-      .replace(resolve(viewsPath), '')
-      .replace(/^\//, '')
-      .replace(/\.blade\.php$/, '')
-      .replace(/\//g, '.');
-    
-    return relativePath;
+    return filePath
+      .slice(1)
+      .replace(viewsPath + '/', '')
+      .replace(/\.blade\.php$/, "")
+      .split('/').join(".");
   }
 
   function extractPropNames(code) {
@@ -115,7 +114,8 @@ export default function bond(options = {}) {
       }
       
       // Find and invalidate the corresponding virtual .ts?bond module
-      const cleanPath = filePath.replace(/\.blade\.php$/, '');
+      const relativePath = relative(resolve(viewsPath), filePath);
+      const cleanPath = normalizePath(relativePath.replace(/\.blade\.php$/, ''));
       const virtualScriptPath = `${cleanPath}.ts?bond`;
       
       const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
@@ -190,7 +190,7 @@ export default function bond(options = {}) {
       
       // Handle bond module alias
       if (id === 'bond') {
-        return resolve(process.cwd(), 'vendor/ganyicz/bond/js/bond.js');
+        return resolve(process.cwd(), join('vendor', 'ganyicz', 'bond', 'js', 'bond.js'));
       }
       
       // Handle blade script requests similar to Vue's approach
@@ -213,10 +213,11 @@ export default function bond(options = {}) {
             
             if (script) {
               // Create a .ts virtual file so Vite handles TypeScript transformation
-              // Remove .blade.php and add .ts extension
-              const cleanPath = filePath.replace(/\.blade\.php$/, '');
+              // Use relative path for virtual module ID, normalize to forward slashes for URLs
+              const relativePath = relative(process.cwd(), filePath);
+              const cleanPath = normalizePath(relativePath).replace(/\.blade\.php$/, '');
               const virtualPath = `${cleanPath}.ts?bond`;
-              imports.push(`import '${virtualPath}';`);
+              imports.push(`import '/${virtualPath}';`);
             }
           } catch (error) {
             console.warn(`[bond] Error processing ${filePath}:`, error.message);
@@ -236,9 +237,10 @@ export default function bond(options = {}) {
         
         try {
           // Remove the .ts extension and add back .blade.php to get the actual file
-          const actualFilename = filename.replace(/\.ts$/, '.blade.php');
+          const actualFilename = filename.replace(/\.ts$/, ".blade.php");
+          const path = join(process.cwd(), actualFilename)
           
-          const content = readFileSync(actualFilename, 'utf-8');
+          const content = readFileSync(path, 'utf-8');
           const script = extractScriptSetup(content);
           
           if (script) {

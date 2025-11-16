@@ -12,6 +12,7 @@ export default defineConfig({
       external: [
         'fs',
         'path',
+        'vite',
       ]
     },
     outDir: 'dist',
