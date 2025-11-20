@@ -67,9 +67,9 @@ function bond(options = {}) {
       if (virtualModule) {
         server.reloadModule(virtualModule);
       }
-      const relativePath = relative(resolve(viewsPath), filePath);
+      const relativePath = relative(process.cwd(), filePath);
       const cleanPath = normalizePath(relativePath.replace(/\.blade\.php$/, ""));
-      const virtualScriptPath = `${cleanPath}.ts?bond`;
+      const virtualScriptPath = `/${cleanPath}.ts?bond`;
       const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
       if (scriptModule) {
         server.reloadModule(scriptModule);
@@ -179,7 +179,7 @@ function bond(options = {}) {
           const content = readFileSync(id, "utf-8");
           const script = extractScriptSetup(content);
           if (script) {
-            const importStatement = `import '${id}.ts?bond';`;
+            const importStatement = `import /'${id}.ts?bond';`;
             return {
               code: importStatement,
               map: null

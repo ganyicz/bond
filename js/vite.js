@@ -114,9 +114,9 @@ export default function bond(options = {}) {
       }
       
       // Find and invalidate the corresponding virtual .ts?bond module
-      const relativePath = relative(resolve(viewsPath), filePath);
+      const relativePath = relative(process.cwd(), filePath);
       const cleanPath = normalizePath(relativePath.replace(/\.blade\.php$/, ''));
-      const virtualScriptPath = `${cleanPath}.ts?bond`;
+      const virtualScriptPath = `/${cleanPath}.ts?bond`;
       
       const scriptModule = server.moduleGraph.getModuleById(virtualScriptPath);
       if (scriptModule) {
@@ -269,7 +269,7 @@ export default function bond(options = {}) {
           
           if (script) {
             // Generate import for the script setup block
-            const importStatement = `import '${id}.ts?bond';`;
+            const importStatement = `import /'${id}.ts?bond';`;
             
             // Return the import as the module content
             return {
@@ -284,7 +284,5 @@ export default function bond(options = {}) {
 
       return null;
     },
-
-
   };
 }
